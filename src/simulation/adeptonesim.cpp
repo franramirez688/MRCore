@@ -62,6 +62,8 @@ Codo izquierdo -> elbow = -1;
 
 //Base =links[0]
 	vector<Vector2D> list;
+	Actuator* actuator;
+
 
 	ComposedEntity *link=new ComposedEntity;
 	link->setName("Base");
@@ -340,7 +342,7 @@ Contiene toda la matematica de la cinematica inversa del SCARA ADEPT ONE
 
 //Joint 1 y 2
 	double c2=(p.x*p.x+p.y*p.y-a1*a1-a2*a2)/(2*a1*a2);
-	if(1-c2*c2<0)return false;
+	if((1-c2*c2)<0)return false;
 	double s2=elbow*sqrt(1-c2*c2);
 	q[1]=atan2(s2,c2);
 	double k1=a1+a2*cos(q[1]);

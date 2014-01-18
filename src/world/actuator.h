@@ -1,7 +1,7 @@
 /**********************************************************************
  *
  * This code is part of the MRcore project
- * Author:  Rodrigo Azofra Barrio & Miguel Hernando Gutierrez
+ * Author:  Francisco Ramirez de Anton Montoro
  * 
  *
  * MRcore is licenced under the Common Creative License,
@@ -43,6 +43,16 @@ using namespace std;
 namespace mr
 {
 	class SimpleJoint;
+	
+	//types of movements
+	enum PositionInterpolator 
+	{
+		CPT,
+		TVP,
+		SPLINE,
+	};
+
+
 /**
     \class Actuator
     Actuator	->	Implementation to simulate simplejoints movement
@@ -53,26 +63,8 @@ class Actuator: public PositionableEntity
 	DECLARE_MR_OBJECT(Actuator)
 	//friend class World;
 
-protected:
-	SimpleJoint* s_Joint;
-
-	//kinematic simulation atributes
-	double speed, maxSpeed; // m/s rad/s
-	double acceleration,maxAcceleration; //rad/sec^2
-	
-	double target, targetIntermediate;
-	bool targetActive; //true if target have to be reached
-	string typeTrajectoryTVP;
-	//spline algorithm
-	double a0,a1,a2,a3; //polinomial coeficients
-
-	bool activateTVP,activateCPT;
-
-	int index;
-	vector<double> velocInter;
-
-
 public:
+	
 //constructors
 
 //Basic Constructor
@@ -81,7 +73,7 @@ public:
 	virtual ~Actuator(void);
 
 
-//simulation methods
+//general simulation methods
 	void setSimulationParameters(double _maxSpeed, double _maxAcceleration=PI/6);//max acelerate default=30º/sec^2
 
 	double setSpeed(double sp);
@@ -97,32 +89,64 @@ public:
 
 	virtual void simulate(double delta_t);
 
-	void activateCubicPolynomialTrajectory(){activateTVP=false;activateCPT=true;}
-	void activateTrapezoidalVelocityTrajectory(){activateTVP=true;activateCPT=false;}
-
 	bool setTarget(double val);
 	double getTarget(){return target;}
 
-//Cubic Polinomial Trajectory (CPT)
+	void setFrequency (float _freq){frequency = _freq;}
+	float getFrequency () {return frequency;}
 
-	void simulateCPT(double delta_t);
-	bool setTargetCPT(double _time);
-	void setCubicPolinomialCoeficients(double path,double targetTime);
+	//vector<double> getCoeficientsPolinomial(){
+	//	vector<double> coef; 
+	//	coef.push_back(a0);
+	//	coef.push_back(a1);
+	//	coef.push_back(a2);
+	//	coef.push_back(a3);
+	//	return coef;
+	//}
+        
+//selection movement
+	void setPositionInterpolator (PositionInterpolator _type=CPT){interpolator_position=_type;}
+	PositionInterpolator getPositionInterpolator (){return interpolator_position;}
 
+//specific methods Trapezoidal Velocity Profile interpolator (TVP)
+	bool setPositionInterpolatorTVP(string _type);
+	string getPositionInterpolatorTVP(){return PositionInterpolatorTVP;}
+	//void simulateInterpolatorTVP(double _time);
+	void loadAttributesTVP(double _q_target, int _signMovement, double _TVP_acceleration_time, double targetTime);
+	//void simulateInterpolatorTVP(double qInit,double q_target,int signMovement,double _time, 
+	//								   double targetTime, double TVP_acceleration_time);
+	void simulateInterpolatorTVP(double _time);
 
-//Trapezoidal Velocity Profile tarjectory (TVP)
+//specific methods SPLINE and Cubical Polinomial Trajectory (CPT) interpolators 
+	void computeCubicPolinomialCoeficients(double path_joint,double targetTime);//used by both
+	void computeVelocIntermediates (vector<double> veloc);//specific for SPLINE
+	void simulateInterpolatorPolinomial(double _time);//used by both
 
-	void simulateTVP(double delta_t);
-	bool setTargetTVP(double qInit,double q_target,int signMovement,double timeInit,double timeFinal,double ta, double _time);
-	bool setTypeTrajectoryTVP(string _type);
-	string getTypeTrajectoryTVP(){return typeTrajectoryTVP;}
+//Attributes
+protected:
+	SimpleJoint* s_Joint;
 
-// Spline trajetory (interpolation points)
-	void setVelocIntermediates (vector<double> veloc);
-	void simulateSPLINE(double delta_t);
-	bool setTargetSPLINE(double _time);
-	void setCubicPolinomialCoeficientsSPLINE(double strech,double Tk);
+	//kinematic simulation attributes
+	double speed, maxSpeed; // m/s rad/s
+	double acceleration, maxAcceleration; //rad/sec^2
+	
+	double target, targetIntermediate;
+	bool targetActive; //true if target have to be reached
+	PositionInterpolator interpolator_position;
+	float frequency; //Hz
 
+//specific cubic polinomial and spline interpolator
+	double a0,a1,a2,a3; //polinomial coeficients
+	int index_veloc_intermediates; //index of velocities intermediates
+	vector<double> velocInter; //velocities intermediates
+	
+//specific TVP interpolator
+	string PositionInterpolatorTVP;
+	double q_init;//joint initial value
+	double q_target;//joint final value
+	double initial_time, target_time;//time to get the target
+	double TVP_acceleration_time;//TVP_time_acceleration
+	int signMovement;// Value: 1 (positive cuadrant) or -1 (negative cuadrant)
 
 
 };

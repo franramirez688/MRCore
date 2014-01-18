@@ -1,7 +1,8 @@
 /**********************************************************************
  *
  * This code is part of the MRcore project
- * Author:  Rodrigo Azofra Barrio & Miguel Hernando Gutierrez
+ * Author:  Rodrigo Azofra Barrio & Miguel Hernando Gutierrez & 
+ *			Francisco Ramirez de Anton Montoro
  * 
  *
  * MRcore is licenced under the Common Creative License,
@@ -133,42 +134,15 @@ unsigned char RobotSim::getCurrentConfiguration()
 	return conf;
 	
 }
-bool  RobotSim::moveTo(Transformation3D t3d, unsigned char conf)
+
+unsigned char RobotSim::getCurrentConfiguration(vector<double> _q) //used by linear path
 {
-/***
-the T3D is a relative transformation to the base (link[0])
-***/
-
-	if(conf==0x0)conf=getCurrentConfiguration();
-
-	vector<double> q;
-	if(inverseKinematics(t3d,q,conf))
-	{
-		for(int i=0;i<(int)joints.size();i++)
-			joints[i]->setValue(q[i]);
-		return true;
-	}
-	else return false;
-
+	unsigned char conf;
+	//we already know joints' values to next target
+	getConfigurationOf(_q,conf);
+	return conf;
 }
-bool RobotSim::moveTo(const vector<double> & _q)
-{
 
-	if(_q.size()!=joints.size())return false;
-	if(!checkJointValues(_q))return false; //limits checking
-	//for(int i=0;i<(int)joints.size();i++)joints[i]->setValue(_q[i]);
-	goTo(_q);
-	return true;
-}
-bool  RobotSim::moveToAbs(Transformation3D t3d, unsigned char conf)
-{
-
-	Transformation3D t_base=links[0]->getAbsoluteT3D();
-	Transformation3D aux=t_base.inverted();
-	Transformation3D t_p=(aux)*(t3d);
-
-	return moveTo(t_p,conf);
-}
 Transformation3D RobotSim::getTcpAbsLocation()
 {
 	return tcp->getAbsoluteT3D();
@@ -179,20 +153,13 @@ Transformation3D RobotSim::getTcpLocation()
 	Transformation3D aux=links[0]->getAbsoluteT3D();
 	return (aux.inverted())*_t;
 }
-bool RobotSim::moveTo(double *_q)
-{
-	int num=(int)joints.size();
-	vector<double> q;
-	for(int i=0;i<num;i++)q.push_back(_q[i]);
-	return moveTo(q);
-}
 
 
 void RobotSim::simulate(double delta_t)
 {
-
-	if((int)q_target.size() == (int)joints.size())
+	if((int)q_target.size()==(int)joints.size())
 	{
+
 		double error=0;
 		for(int i=0;i<(int)joints.size();i++)
 			error+=fabs(q_target[i]-joints[i]->getValue());//*
@@ -205,18 +172,48 @@ void RobotSim::simulate(double delta_t)
 			q_target.clear();
 			time=0.0;
 			targetTime=0.0;
-			posInit=true;
-			qInit.clear();
+			
+			via_point_flag=false; //end of vía point
+
+			if (path_type==LINEAR)
+			{
+				if ((index_pos+1) != (int)all_q_values.size())
+				{
+					index_pos++;
+					updateTargetAndTagetTime(index_pos);
+				}
+				else
+				{
+					all_q_values.clear();
+					all_space_points.clear();
+					return;
+				}
+			}				
 		}
+
 		else
 		{
-			checkActivationTrajectory();
 
-			if (activateTVP)
-				calculateTargetTVP(time);
-			else if (activateCPT)
-				calculateTargetCPT(time);
-			//calculateTargetSPLINE(0.1);
+			/****************************************************************
+				IF INTERPOLATOR SELECTED IS CUBIC POLINOMIAL TRAJECTORY TYPE 
+			*****************************************************************/
+			if (interpolator_position==CPT)
+				for(int i=0;i<(int)actuators.size();i++){
+					actuators[i]->simulateInterpolatorPolinomial(time);}
+
+			/*****************************************************************
+				IF INTERPOLATOR SELECTED IS TRAPEZOIDAL VELOCITY PROFILE TYPE 
+			 *****************************************************************/
+			else if (interpolator_position==TVP)
+				for (int i=0;i<(int)actuators.size();i++)
+					actuators[i]->simulateInterpolatorTVP(time);
+
+			/*************************************************************
+				IF INTERPOLATOR SELECTED IS SPLINE TRAJECTORY TYPE 
+			**************************************************************/
+			else if (interpolator_position==SPLINE)
+				for(int i=0;i<(int)actuators.size();i++){
+					actuators[i]->simulateInterpolatorPolinomial(time);}
 
 			time+=delta_t;
 		}
@@ -226,12 +223,12 @@ void RobotSim::simulate(double delta_t)
 }
 
 
-void RobotSim::goTo(vector<double> q)
-{
-	
-	q_target=q;//Target loaded
 
+void RobotSim::computeTrajectoryTo(vector<double> q)
+{
+	q_target=q;//Target loaded
 	double error=0;
+
 	for(int i=0;i<(int)joints.size();i++)
 		error+=fabs(q_target[i] - joints[i]->getValue());//*
 
@@ -243,65 +240,62 @@ void RobotSim::goTo(vector<double> q)
 	else
 	{
 		time=0.0;
-
-		checkActivationTrajectory();
-
-		if (activateTVP)
-			calculateTargetTimeTVP();
-		else if (activateCPT)
-			calculateTargetTimeCPT();
-		//calculateTargetTimeSPLINE();
+		computeTargetTime();
 	}
-
 	return;
 }
 
-void RobotSim::checkActivationTrajectory()
-{
-	//Check if there are two trajectories activated/desactivated
-	if((!activateTVP && !activateCPT) || (activateTVP && activateCPT))
-	{//default selection TVP
-		activateTVP=true;
-		activateCPT=false;
-	}
+
+void RobotSim::updateTargetAndTagetTime(int index)
+{ 
+	q_target = all_q_values[index];
+	computeTargetTime();
 }
 
-void RobotSim::goToAbs(Transformation3D t)
+
+/* Methods to calculate the target time depending on the interpolator chosen */
+
+void RobotSim::computeTargetTime()
 {
-	vector<double> q;
-	if(!inverseKinematicsAbs(t,q))return;
-	goTo(q);
-	return;
+	/*
+		Following options are depending on type of trajectory and each one 
+		calculates the target time for the actuators which control the movement
+	*/
+
+	if (joints.size()!=actuators.size())return;
+	if (q_target.size()!=joints.size())return;
+
+	/*************************************************************
+		IF INTERPOLATOR SELECTED IS CUBIC POLINOMIAL  TYPE 
+	**************************************************************/
+	if (interpolator_position==CPT)
+		computeTargetTimePolinomial();
+
+	/******************************************************************
+		IF INTERPOLATOR SELECTED IS TRAPEZOIDAL VELOCITY PROFILE TYPE 
+	*******************************************************************/
+	else if (interpolator_position==TVP)
+		computeTargetTimeTVP();
+
+	/******************************************************************
+		IF INTERPOLATOR SELECTED IS SPLINE TYPE
+	*******************************************************************/
+
+	else if (interpolator_position==SPLINE)
+		computeTargetTimePolinomial();
+
 }
 
-void RobotSim::goTo(Transformation3D t)
+void RobotSim::computeTargetTimePolinomial()
 {
-	vector<double> q;
-	unsigned char conf=getCurrentConfiguration();
-	if(!inverseKinematics(t,q,conf))return;
-	goTo(q);
-	return;
-}
+	/*
+		Here we are calculating the max time which one of the 
+		actuators last in reaching the target
+	*/
 
-bool RobotSim::checkActuatorsIsMoving()
-{
-	for(int i=0;i<(int)actuators.size();i++)
-	{
-		if(actuators[i]->isMoving())
-			return true;
-	}
-	return false;
-}
-
-/*************************************************************
-	METHODS TO CALCULATE TARGET BY CUBIC POLINOMIAL TRAJECTORY
-**************************************************************/
-void RobotSim::calculateTargetTimeCPT()
-{
 	double lowestSpeed=100.0;
 	double longestPath=0.0;
 	vector<double> pathJoint;
-
 
 	for(int i=0;i<(int)actuators.size();i++)
 	{
@@ -314,41 +308,54 @@ void RobotSim::calculateTargetTimeCPT()
 	}
 	targetTime = longestPath / lowestSpeed;
 
-	for(int i=0;i<(int)actuators.size();i++)
+	//if interpolator is CPT
+	if (interpolator_position == CPT)
 	{
-		actuators[i]->setCubicPolinomialCoeficients(pathJoint[i],targetTime);
+		for(int i=0;i<(int)actuators.size();i++)
+		{
+			actuators[i]->computeCubicPolinomialCoeficients(pathJoint[i],targetTime);
+		}
+		return;
 	}
+	//if interpolator is SPLINE
+	else if (interpolator_position == SPLINE)
+	{
+		double Tk=0.1,stretch=0.1;
+		int nIterations=(int)(targetTime/Tk);
+		vector<double> a,b,c,d;
+		for (int i=0;i<nIterations+2;i++)
+		{
+			a.push_back(Tk);
+			b.push_back(4*Tk);//2*(Tk+Tk)
+			c.push_back(Tk);
+			d.push_back(6*stretch);//(3/(Tk^2))*(2*Tk^2*(qk+1-qk))
+		}
+		vector<double> veloc= TDMA(a,b,c,d,nIterations);
+		
+		for (int i=1;i<(int)actuators.size();i++)
+		{
+			actuators[i]->computeVelocIntermediates(veloc);
+			actuators[i]->computeCubicPolinomialCoeficients(stretch,Tk);
+		}
+		return;
+	}
+
 }
 
-void RobotSim::calculateTargetCPT(double _time)
-{
-	for(int i=0;i<(int)actuators.size();i++)
-	{
-		actuators[i]->setTargetCPT(_time);
-	}
-}
-
-/******************************************************************
-	METHODS TO CALCULATE TARGET BY TRAPEZOIDAL VELOCITY PROFILE
-*******************************************************************/
-
-void RobotSim::calculateTargetTimeTVP()
-{
-	if (joints.size()!=actuators.size())return;
-	if (q_target.size()!=joints.size())return;
-
-	posInit=true;
-
-	double auxTargetTime,auxTa;
-	double maxTa,maxTargetTime=0.0;
-	double maxSpeed,maxAcceleration;
-	double condition;
-	vector<double> path;
-	int index=0;
-
+void RobotSim::computeTargetTimeTVP()
+{		
+		
 	/* Check which is the maximum time to get the target by all the joints.
 	For this we obtain the max values of the speed and acceleration of the joints and check
 	with their own path to travel  */
+
+	double auxTargetTime=0.0,aux_time_acceleration=0.0;
+	double max_time_acceleration=0.0,maxTargetTime=0.0;
+	double maxSpeed=0.0,maxAcceleration=0.0;
+	double condition=0.0;
+	double TVP_acceleration_time=0.00;
+	vector<double> path;
+	int index=0;
 
 	for(int i=0;i<(int)actuators.size();i++)
 	{	
@@ -362,189 +369,440 @@ void RobotSim::calculateTargetTimeTVP()
 		if (condition>path[i])//Bang Bang movement
 		{
 			auxTargetTime=2*sqrt(path[i]/maxAcceleration);//targetTime
-			auxTa=0.5*auxTargetTime;//ta
+			aux_time_acceleration=0.5*auxTargetTime;//acceleration time 
 		}
 		else // speed and acceleration with maximus values
 		{		
 			auxTargetTime=path[i]/maxSpeed + maxSpeed/maxAcceleration;//targetTime
-			auxTa=maxSpeed/maxAcceleration;//ta
+			aux_time_acceleration=maxSpeed/maxAcceleration;// acceleration time
 		}
 
 		if (maxTargetTime<auxTargetTime)//choose the max values
 		{
 			index=i;
 			maxTargetTime=auxTargetTime;
-			maxTa=auxTa;
+			max_time_acceleration=aux_time_acceleration;
 		}
 
 	}
 
 	targetTime=maxTargetTime;
-	ta=maxTa;
+	TVP_acceleration_time=max_time_acceleration;
 
-	if(maxTa==(0.5*maxTargetTime))
-		actuators[index]->setTypeTrajectoryTVP("BangBang");
+	if(max_time_acceleration==(0.5*maxTargetTime))
+		actuators[index]->setPositionInterpolatorTVP("BangBang");
 	else 
 	{
 		actuators[index]->setSpeed(actuators[index]->getMaxSpeed());
 		actuators[index]->setAcceleration(actuators[index]->getMaxAcceleration());
-		actuators[index]->setTypeTrajectoryTVP("MaximumSpeedAcceleration");
+		actuators[index]->setPositionInterpolatorTVP("MaximumSpeedAcceleration");
 	}
 
-	adjustMotionJointsTVP(path,maxTargetTime,maxTa,index);
-}
+	/*
+		Now we are going to adjust the motion of all joints in TVP trajectory
+	*/
 
-void RobotSim::adjustMotionJointsTVP (vector<double> _path,double _targetTime,double _ta,int index)
-{
 	//we adjust the speed and acceleration to get all the joints are finishing the movement at the same time
-	
-	if(_targetTime<=0 && _ta<=0)return;
-	
-	double speed,acel,maxSp,maxAcel;
-	vector<double> path=_path;
+	if(maxTargetTime<=0 && max_time_acceleration<=0)return;
+	double speed=0,accel=0,maxSp=0,maxAccel=0;
 
 	for(int i=0;i<(int)actuators.size();i++)
 	{
 		if(i==index)continue;
 		maxSp=actuators[i]->getMaxSpeed();
-		maxAcel=actuators[i]->getMaxAcceleration();
+		maxAccel=actuators[i]->getMaxAcceleration();
 
 		//movement with speed and acceleration values adjust to timeTarget global
-		speed=path[i]/(_targetTime-_ta);
-		acel=speed/_ta;
+		speed=path[i]/(maxTargetTime-max_time_acceleration);
+		accel=speed/max_time_acceleration;
 
-		if (speed>maxSp || acel>maxAcel)//if true, try to change the movement to Bang Bang
+		if (speed>maxSp || accel>maxAccel)//if true, try to change the movement to Bang Bang
 		{
-			acel=path[i]/(_ta*_ta);
-			speed=acel*_ta;
+			accel=path[i]/(max_time_acceleration*max_time_acceleration);
+			speed=accel*max_time_acceleration;
 
-			if (speed>maxSp || acel>maxAcel)
-				return; //we have to recalculate the ta time to this actuator
-			actuators[i]->setAcceleration(acel);
+			if (speed>maxSp || accel>maxAccel)
+				return; //we have to recalculate the  acceleration time to this actuator
+			actuators[i]->setAcceleration(accel);
 			actuators[i]->setSpeed(speed);
-			actuators[i]->setTypeTrajectoryTVP("BangBang");
+			actuators[i]->setPositionInterpolatorTVP("BangBang");
 		}
 		else
 		{
 			actuators[i]->setSpeed(speed);
-			actuators[i]->setAcceleration(acel);
-			actuators[i]->setTypeTrajectoryTVP("MaximumSpeedAcceleration");
+			actuators[i]->setAcceleration(accel);
+			actuators[i]->setPositionInterpolatorTVP("MaximumSpeedAcceleration");
 		}
+		
 	}
-}
 
-
-void RobotSim::calculateTargetTVP(double _time)
-{
-
-	double timeInit,timeFinal;
-	//double target;
-	timeInit=0.0;
-	timeFinal=targetTime;
+	//Now set all the necessary attributes to simulate with this interpolator		
 	int signMovement=1;
-
-	if(q_target.size()!=actuators.size())return;
-	if(joints.size()!=actuators.size())return;
-
-	if (posInit) //we need the initial values of the joints
+	for (int i=0;i<(int)actuators.size();i++)
 	{
-		for (int i=0;i<actuators.size();i++)
-		{
-			qInit.push_back(joints[i]->getValue());
-
-		}
-		posInit=false;
-	}
-
-	for (int i=0;i<actuators.size();i++)
-	{
-		if ((q_target[i]-qInit[i])<0)
+		if ((q_target[i]-joints[i]->getValue())<0)//compare the initial joint value
 			signMovement=-1;//if we go to target in the negative cuadrant
 		else 
 			signMovement=1;
-
-		actuators[i]->setTargetTVP(qInit[i],q_target[i],signMovement,timeInit,timeFinal,ta,_time);
-
-		//if(actuators[i]->getTypeTrajectoryTVP()=="MaximumSpeedAcceleration")
-		//{
-		//	//Acceleration phase
-		//	if (_time<(timeInit+ta) && _time>=timeInit)
-		//		target=qInit[i]+signMovement*((actuators[i]->getAcceleration()*0.5)*square(_time-timeInit));
-
-		//	//Velocity constant phase
-		//	if (_time>=(timeInit+ta) && _time<=(timeFinal-ta))
-		//		target=qInit[i]+signMovement*(actuators[i]->getSpeed()*(_time-timeInit-ta*0.5));
-
-		//	//Deceleration phase
-		//	if (_time>(timeFinal-ta) && _time<=timeFinal)
-		//		target=q_target[i]-signMovement*((actuators[i]->getAcceleration()*0.5)*square(timeFinal-_time));
-		//}
-		//else if(actuators[i]->getTypeTrajectoryTVP()=="BangBang")
-		//{
-		//	//Acceleration phase
-		//	if (_time<(timeFinal*0.5) && _time>=timeInit)
-		//		target=qInit[i]+signMovement*((actuators[i]->getMaxAcceleration()*0.5)*square(_time-timeInit));
-
-		//	//Deceleration phase
-		//	if (_time>=(timeFinal*0.5) && _time<=timeFinal)
-		//		target=q_target[i]-signMovement*((actuators[i]->getMaxAcceleration()*0.5)*square(timeFinal-_time));
-		//}
-
-		//actuators[i]->setTarget(target);
+		actuators[i]->loadAttributesTVP(q_target[i],signMovement,  TVP_acceleration_time, targetTime);
 	}
 
 }
 
 
-/******************************************************************
-	METHODS TO CALCULATE TARGET BY SPLINE TRAJECTORY
-*******************************************************************/
+/*
+	Method to calculate the linear path for any space point
+*/
 
-void RobotSim::calculateTargetTimeSPLINE()
-{
-	double lowestSpeed=100.0;
-	double longestPath=0.0;
-	vector<double> pathJoint;
+bool RobotSim::computeLinearPathAbs (Transformation3D td3d)
+{	
+	Transformation3D t_base=links[0]->getAbsoluteT3D();
+	Transformation3D aux=t_base.inverted();
+	Transformation3D t_p=(aux)*(td3d);
+
+	return computeLinearPath(t_p);
+} 
 
 
-	for(int i=0;i<(int)actuators.size();i++)
-	{
-		pathJoint.push_back(q_target[i] - joints[i]->getValue());//Path each coordinate: target minus current coordinates
-
-		if(actuators[i]->getMaxSpeed() <= lowestSpeed)
-			lowestSpeed = actuators[i]->getMaxSpeed();
-		if(fabs(pathJoint[i])>= longestPath)
-			longestPath =fabs(pathJoint[i]);//*
-	}
-	targetTime = longestPath / lowestSpeed;
+bool RobotSim::computeLinearPath (Transformation3D td3d)
+{	
+	/*
+		Calculating the vector of intermediate positions
+	*/
+	Vector3D posIni(getTcpLocation().position);
+	Vector3D posEnd(td3d.position);
+	all_space_points.clear();
+	all_q_values.clear();
 	
-	double Tk=0.1,stretch=0.1;
-	int nIterations=(int)(targetTime/Tk);
-	vector<double> a,b,c,d;
-	for (int i=0;i<nIterations+2;i++)
+	Vector3D direct_vec = posEnd - posIni; //direction vector
+	double total_path = direct_vec.module(); //distance L = total path
+	
+	if (total_path<EPS)
+		return false;
+	
+	double speed_to_achieve = 5.00; //velocity which will be imposed to all actuators
+	double target_max_time = total_path / speed_to_achieve;
+	
+	double divisions = target_max_time * controlFrequency;
+	int div_pos = (int)divisions;
+	if (div_pos == 0)div_pos=1;
+	direct_vec=direct_vec/div_pos;
+
+	/*
+		Calculating the intermediate orientations
+	*/
+	OrientationMatrix orientIni = td3d.orientation;//get final orientation
+	OrientationMatrix orientEnd = getTcpLocation().orientation;//get current orientation
+	//compute matrix Init->Final
+	//OrientationMatrix orientInit_End = orientIni.transposed()*orientEnd;
+
+	Quaternion q1;//quaternion initial
+	Quaternion q2;//quaternion final and intermediate
+	Quaternion q_inter;//interpolated quaternion
+	
+	orientIni.getQuaternion(q1);
+	orientEnd.getQuaternion(q2);
+
+	double t=0.00;
+	double r=0.00,p=0.00,y=0.00;
+
+	for (int i=0;i<div_pos;i++)
 	{
-		a.push_back(Tk);
-		b.push_back(4*Tk);//2*(Tk+Tk)
-		c.push_back(Tk);
-		d.push_back(6*stretch);//(3/(Tk^2))*(2*Tk^2*(qk+1-qk))
-	}
-	vector<double> veloc= TDMA(a,b,c,d,nIterations);
-	for (int i=1;i<(int)actuators.size();i++)
-	{
-		actuators[i]->setVelocIntermediates(veloc);
-	}
+		
+		//position
+		posIni.x+=direct_vec.x;
+		posIni.y+=direct_vec.y;
+		posIni.z+=direct_vec.z;
+
+		//orientation
+		t = i/(double)div_pos;//t -> [0.00,1.00]
+		q_inter = computeOrientationSLERP(q1,q2,t);
+		OrientationMatrix m = q_inter.getOrientationMatrix();
+		m.getRPY(r,p,y);
+
+		Transformation3D td3_final(posIni.x, posIni.y, posIni.z, r, p, y);
+		all_space_points.push_back(td3_final);
+		
+	}// we already have all the intermediate positions and orientations (X,Y,Z,ROLL,PITCH,YAW)
+	return true;
 }
 
-void RobotSim::calculateTargetSPLINE(double _time)
+ /*
+	Method to interpolate orientation in a robot movement.
+	It uses the SLERP method which calculates intermediate quaternions.
+
+	SLERP(qa,qb,u) = qm = (qa*sin((1-t)*theta)+qb*sin(t*theta))/sin(theta)
+		qm = interpolated quaternion
+		qa = quaternion a (first quaternion to be interpolated between)
+		qb = quaternion b (second quaternion to be interpolated between)
+		t = a scalar between 0.0 (at qa) and 1.0 (at qb)
+		theta is half the angle between qa and qb
+ */
+
+Quaternion RobotSim::computeOrientationSLERP(Quaternion qa, Quaternion qb, double t)
 {
-	double strech=0.1,Tk=0.1;
-	for(int i=0;i<(int)actuators.size();i++)
-	{
-		actuators[i]->setCubicPolinomialCoeficientsSPLINE(strech,Tk);
-		actuators[i]->setTargetSPLINE(_time);
+	if (t>1.00)
+		t = 1.00;
+
+	Quaternion q, qm;
+	
+	//compute matrix Init->Final
+	//OrientationMatrix orientInit_End = orientIni.transposed()*orientEnd;
+	//orientInit_End.getQuaternion(q);
+	
+	qa = qa.inverse();
+	q = qa * qb;//q wich connects qa with qb -> q = qa^-1*qb
+
+	// Calculate angle between them.
+	double cosHalfTheta = q.scal;
+	// if qa=qb or qa=-qb then theta = 0 and we can return qa
+	if (abs(cosHalfTheta) >= 1.0){
+		return qa;//qm = qa
 	}
+
+	// Calculate temporary values.
+	double halfTheta = acos(cosHalfTheta);
+	double sinHalfTheta = sqrt(1.00 - cosHalfTheta*cosHalfTheta);
+	// if theta = 180 degrees then result is not fully defined
+	// we could rotate around any axis normal to qa or qb
+	if (fabs(sinHalfTheta) < EPS){ // fabs is floating point absolute
+		qm = qa*0.5 + qb*0.5;
+		return qm;
+	}
+	double ratioA = sin((1 - t) * halfTheta) / sinHalfTheta;
+	double ratioB = sin(t * halfTheta) / sinHalfTheta; 
+	//calculate Quaternion
+	qm = qa*ratioA + qb*ratioB;
+
+	return qm;
+
+	//qm = qa*(sin((1-t)*theta)/sin(theta)) + qb*(sin(t*theta)/sin(theta));
 }
 
+
+
+/*
+	Method to calculate the via point in a trajectory with two different targets
+*/
+bool RobotSim::computeViaPoint(Transformation3D td3_a_prim,Transformation3D td3_b,Transformation3D td3_c_prim)
+{
+	/*
+	When robot have gone over the 90% of total distance 
+	if there is a new target to go, it'll start to change 
+	its direction to the other target --> Via Point
+
+	Via point ---> (A'-->C')
+			 
+			B
+			/\
+		   /  \
+		  A'---C'
+		 /      \
+		/        \
+	   /		  \
+	  A		       \				
+					C
+
+	Math to calculate trajectory in via point
+	**********************************************************
+	* p(t) = A' + v1*Kab*t +t^2/(2*(Tc'-Ta'))*(v2*Kbc-v1*Kab)*
+	**********************************************************
+	
+	*/
+
+	
+	/*
+		Calculating the vector of intermediate positions
+	*/
+
+	Vector3D pos_a_prim(td3_a_prim.position);
+	Vector3D pos_b(td3_b.position);
+	Vector3D pos_c_prim(td3_c_prim.position);
+
+	//all_space_points.clear();
+	//all_q_values.clear();
+
+	//direction vectors
+	Vector3D Kab = pos_b - pos_a_prim; 
+	Vector3D Kbc = pos_c_prim - pos_b;
+	Vector3D pos;
+
+	//unit vectors
+	Kab = Kab.normalize();
+	Kbc = Kbc.normalize();
+
+	//lenght
+	double d1 = Kab.module();
+	double d2 = Kbc.module();
+
+	if (d1<=EPS || d2<=EPS)
+		return false;
+
+	double veloc_max=5.00, acel_max = 1.00;//rad/s and rad/s^2
+
+	//we supposed v1 = v2 = vmax
+	double delta_time = (veloc_max/acel_max)*((Kbc-Kab).module());
+
+	double divisions = delta_time * controlFrequency;
+	int div_pos = (int)divisions;
+	if (div_pos == 0)div_pos=1;
+
+	/*
+		Calculating the intermediate orientations
+	*/
+	OrientationMatrix orientIni = td3_a_prim.orientation;//get final orientation
+	OrientationMatrix orientEnd = td3_c_prim.orientation;//get current orientation
+
+	Quaternion q1;//quaternion initial
+	Quaternion q2;//quaternion final and intermediate
+	Quaternion q_inter;//interpolated quaternion
+	
+	orientIni.getQuaternion(q1);
+	orientEnd.getQuaternion(q2);
+
+	double t=0.00;
+	double r=0.00,p=0.00,y=0.00;
+
+	for (int i=0;i<div_pos;i++)
+	{
+		t = i/(double)div_pos;//t -> [0.00,1.00]	
+
+		//position
+		pos = pos_a_prim + Kab*(veloc_max*t) + (Kbc*veloc_max-Kab*veloc_max)*(((t*t)/delta_time)*0.5);
+
+		//orientation
+		q_inter = computeOrientationSLERP(q1,q2,t);
+		OrientationMatrix m = q_inter.getOrientationMatrix();
+		m.getRPY(r,p,y);
+
+		Transformation3D td3_final(pos.x, pos.y, pos.z, r, p, y);
+		all_space_via_points.push_back(td3_final);
+		
+	}// we already have all the intermediate positions and orientations (X,Y,Z,ROLL,PITCH,YAW)
+	return true;
+}
+
+
+/***************************************************
+	Different methods to move the joints or robot
+****************************************************/
+
+
+bool  RobotSim::moveTo(Transformation3D t3d, unsigned char conf)
+{
+/*
+the T3D is a relative transformation to the base (link[0])
+*/
+
+	if(conf==0x0)conf=getCurrentConfiguration();
+
+	vector<double> q;
+	if(inverseKinematics(t3d,q,conf))
+	{
+		for(int i=0;i<(int)joints.size();i++)
+			joints[i]->setValue(q[i]);
+		return true;
+	}
+	else return false;
+
+}
+
+bool  RobotSim::moveToAbs(Transformation3D t3d, unsigned char conf)
+{
+
+	Transformation3D t_base=links[0]->getAbsoluteT3D();
+	Transformation3D aux=t_base.inverted();
+	Transformation3D t_p=(aux)*(t3d);
+
+	return moveTo(t_p,conf);
+}
+
+bool RobotSim::moveTo(double *_q)
+{
+	int num=(int)joints.size();
+	vector<double> q;
+	for(int i=0;i<num;i++)q.push_back(_q[i]);
+	return moveTo(q);
+}
+
+bool RobotSim::moveTo(const vector<double> & _q)
+{
+
+	if(_q.size()!=joints.size())return false;
+	if(!checkJointValues(_q))return false; //limits checking
+	for(int i=0;i<(int)joints.size();i++)joints[i]->setValue(_q[i]);
+	//computeTrajectoryTo(_q);
+	return true;
+}
+
+/*
+	Copmpute absolute and relative coordinates
+*/
+
+bool RobotSim::computeTrajectoryToAbs(Transformation3D t)
+{
+	unsigned char conf=getCurrentConfiguration();
+	vector<double> q;
+	
+	if (path_type==LINEAR)
+	{
+		computeLinearPathAbs(t);//convert to relative space points
+		int size = (int)all_space_points.size();
+		if (!size)
+			return false;
+		for (int i=0;i<size;i++)
+		{
+			q.clear();
+			if(!inverseKinematics(all_space_points[i],q,conf))
+				return false;
+			all_q_values.push_back(q);
+			conf=getCurrentConfiguration(q);
+		}
+		q = all_q_values[0];
+		index_pos = 0;
+	}
+	else if (path_type==SYNC_JOINT)
+		if(!inverseKinematicsAbs(t,q))
+			return false;
+
+	computeTrajectoryTo(q);
+	return true;
+}
+
+bool RobotSim::computeTrajectoryTo(Transformation3D t)
+{
+	unsigned char conf=getCurrentConfiguration();
+	vector<double> q;
+	
+	if (path_type==LINEAR)
+	{
+		computeLinearPath (t);
+		int size = (int)all_space_points.size();
+		if (!size)
+			return false;
+		for (int i=0;i<size;i++)
+		{
+			q.clear();
+			if(!inverseKinematics(all_space_points[i],q,conf))
+				return false;
+			all_q_values.push_back(q);
+			conf=getCurrentConfiguration(q);
+		}
+		q = all_q_values[0];
+		index_pos = 0;
+	}
+	else if (path_type==SYNC_JOINT)
+		if(!inverseKinematics(t,q,conf))
+			return false;
+
+	computeTrajectoryTo(q);
+	return true;
+}
+
+
+/*
+	Simplified method to resolve the tridiagonal matrix of velocities in TVP trajectory
+*/
 
 vector<double> RobotSim::TDMA (vector<double> a, vector<double> b, vector<double> c,vector<double> d, int nIterations)
 {
@@ -561,8 +819,6 @@ vector<double> RobotSim::TDMA (vector<double> a, vector<double> b, vector<double
 	xn=d'n
 	xi=d'i-c'i*x[i+1]	i=n-1....1
 	*/
-
-	
 
 	double denom;
 	vector<double> gamma,betta,x;
