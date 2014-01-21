@@ -1,7 +1,8 @@
 /**********************************************************************
  *
  * This code is part of the MRcore project
- * Author:  Rodrigo Azofra Barrio & Miguel Hernando Gutierrez
+ * Author:  Rodrigo Azofra Barrio & Miguel Hernando Gutierrez &
+ *			Francisco Ramirez de Anton Montoro
  * 
  *
  * MRcore is licenced under the Common Creative License,
@@ -53,6 +54,19 @@ namespace mr
 	DESIGN INFO:
 	
 	*/
+
+enum PathType //Linear path or synchronous path
+		{
+			SYNC_JOINT,
+			LINEAR,
+		};
+
+enum OrientationInterpolator //types of orientation interpolators
+		{
+			SLERP,
+			NIELSON_SHIEH,
+		};
+
 class RobotSim : public ComposedEntity 
 {
 	//DECLARE_MR_OBJECT(RobotSim)
@@ -65,8 +79,9 @@ public:
 	virtual void readFromXML(XMLElement* parent){}
 
 
-	//Constructor
-	RobotSim(void):tcp(0){}
+//Constructor
+	RobotSim(void):tcp(0),interpolator_position(TVP),controlFrequency(100),
+		path_type(LINEAR), interpolator_orientation(SLERP){}
 
 //Set and get i-joint value
 	virtual bool setJointValue(int i,double val) {if(i<(int)joints.size())joints[i]->setValue(val);else return false; return true;}
@@ -77,6 +92,7 @@ public:
 //retrieves the robot configuration. If are invalid qs returns false. Have to be redefined for each robot
 	virtual bool getConfigurationOf(const vector<double> & _q,unsigned char &conf){conf = 0x80;return true;} 
 	unsigned char getCurrentConfiguration();
+	unsigned char getCurrentConfiguration(vector<double> _q);
 	Transformation3D getTcpAbsLocation();
 	Transformation3D getTcpLocation();
 //Forward and inverse kinematics Relative. The inverse kinematics must be defined for each new class of robot 
@@ -96,7 +112,7 @@ public:
 	//Movements methods: generic but not safe
 	bool moveTo(double *_q);
 //Simulation of time 
-	//virtual void simulate(double delta_t);//time interval in seconds
+	virtual void simulate(double delta_t);//time interval in seconds
 //data interface
 	int getNumJoints(){return (int)joints.size();}
 	bool getJointLimits(int i, double &max, double &min){
@@ -104,9 +120,10 @@ public:
 		joints[i]->getMaxMin(max,min);
 		return true;
 	}
-	//returns a vector with a copy of the pointers included in joints
+//returns a vector with a copy of the pointers included in joints
 	vector<SimpleJoint *> getJoints(){return joints;}
-	//returns the address of the i-th joint 
+
+//returns the address of the i-th joint 
 	SimpleJoint *getJoint(int i){
 		if((i<0)||(i>=getNumJoints()))return 0; 
 		return joints[i];
@@ -114,67 +131,113 @@ public:
 //Specific Collision checking
 	bool checkRobotColision();
 
-//cinematic simulation methods
-	bool checkActuatorsIsMoving();
-	void checkActivationTrajectory();
-	virtual void goTo(vector<double> _q);
-	virtual void simulate(double delta_t);//time interval in seconds
-	virtual void goToAbs(Transformation3D t);
-	//Load T3D relative
-	virtual void goTo(Transformation3D t);
+//Kinematic simulation methods
+	bool checkRobotIsMoving(){
+		for(int i=0;i<(int)actuators.size();i++){
+			if(actuators[i]->isMoving())
+				return true;
+		}
+		return false;
+	}
 
-//Cubic Polinomial Trajectory (CPT) (ponit to point)
-	void calculateTargetCPT(double _time);
-	void calculateTargetTimeCPT();
-	void activateCubicPolynomialTrajectory(){activateTVP=false;activateCPT=true;
-		for(int i=0;i<(int)actuators.size();i++)
-			actuators[i]->activateCubicPolynomialTrajectory();}
+	void computeTargetTime();//general function to compute the target time depending on interpolator
+	void computeTargetTimePolinomial();//CPT and SPLINE
+	void computeTargetTimeTVP();//TVP
 
-//Trapezoidal Velocity Profile tarjectory (TVP) (point to point)
-	void calculateTargetTVP(double _time);
-	void calculateTargetTimeTVP();
-	void adjustMotionJointsTVP (vector<double> _path,double _targetTime,double _ta,int index);
-	void activateTrapezoidalVelocityTrajectory(){activateTVP=true;activateCPT=false;	
-		for(int i=0;i<(int)actuators.size();i++)
-			actuators[i]->activateTrapezoidalVelocityTrajectory();}
+	void setControlFrequency (float _freq){controlFrequency = _freq;}
+	float getControlFrequency () {return controlFrequency;}
 
-// Spline trajetory (interpolation points)
+//Load T3D relative and absolute
+	virtual bool computeTrajectoryTo(Transformation3D t);
+	virtual bool computeTrajectoryToAbs(Transformation3D t);
 
-	//Thomas Algorithm for Tridiagonal Matrix
-	/*	
-		b1 c1		0	
-		a2 b2 c2 
-	M =
-					cn-1
-		0		an	bn
+//Load values to move all the robot's joint
+	virtual void computeTrajectoryTo(vector<double> _q);
+
+//Selection type of interpolator and movement
+	virtual bool setPositionInterpolator (PositionInterpolator _type){
+		if (checkRobotIsMoving()) return false;
+		for (int i=0;i<(int)actuators.size();i++){
+			actuators[i]->setPositionInterpolator(_type);
+		}
+		interpolator_position=_type;
+		return true;
+	}	
+	
+	virtual PositionInterpolator getPositionInterpolator (){
+		return interpolator_position;
+	}
+	
+	virtual bool setOrientationInterpolator (OrientationInterpolator _type){
+		if (checkRobotIsMoving()) return false;
+		interpolator_orientation = _type;
+		return true;
+	}
+
+	virtual bool setPathType (PathType _type){
+		if (checkRobotIsMoving()) return false;
+		path_type=_type;
+		return true;
+	}	
+
+//Spline trajetory (interpolation points)
+	 /* 
+	 Thomas Algorithm for Tridiagonal Matrix
+	
+			| b1 c1	0   .	0	|
+			| a2 b2 c2	.	.   |
+		M = | 0	 a3  .	.	0   |
+			| .	 .  .	.   cn-1|
+			| 0	 .	0   an	bn  |
 	*/
 	vector<double> TDMA (vector<double> a, vector<double> b, vector<double> c,vector<double> d, int nIterations);
-	void calculateTargetTimeSPLINE();
-	void calculateTargetSPLINE(double _time);
+
+
+//Methods to draw graphs of position, velocity and acceleration of all joints
+	vector<double> getDataGraphPosition ();
+	vector<double> getDataGraphVelocity ();
+	vector<double> getDataGraphAcceleration();
 
 
 protected:
 	
-//redundant information to easily access the kinematic chain
+//Methods to linear path movement (position and orientation)
+	bool computeLinearPath (Transformation3D td3d);
+	bool computeLinearPathAbs (Transformation3D td3d);
+	void updateTargetAndTagetTime(int index);
+	Quaternion computeOrientationSLERP(Quaternion qa, Quaternion qb, double t);
+
+//via point between two targets
+	bool computeViaPoint(Transformation3D td3_a,Transformation3D td3_b,Transformation3D td3_c);
+
+//redundant information to easily access the kinematic chain and joint controllers
 	vector<SolidEntity *> links;
 	vector<SimpleJoint *> joints;
-	Tcp *tcp;
-
-
-//cinematic simulation atributes
 	vector<Actuator*> actuators;
-	Actuator* actuator;
-	double time,targetTime;
-	bool activateTVP,activateCPT;
+	Tcp *tcp;
+	
+//cinematic simulation atributes
 
-	unsigned char conf;
-	vector<double> q_init;
+	double time; //time consumed since the beginning of the trajectory
+	double targetTime; //time to achieve the trajectory
+
+	vector<double> q_init;// initial joint values
 	vector<double> q_target;
+	vector<double> next_q_target;
 
-//atributtes specific TVP movement	
-	bool posInit;
-	double ta;
-	vector<double> qInit;
+	PositionInterpolator interpolator_position; //TVP, CPT or SPLINE
+	OrientationInterpolator interpolator_orientation; //SLERP, NIELSON_SHIEH
+	PathType path_type;
+	float controlFrequency; //Hz 
+
+//Specific linear path trajectory
+	vector<Transformation3D> all_space_points;//sequence of linear path intermediate points (T3D)
+	vector<vector<double>> all_q_values;//sequence of linear path intermediate joints value
+	int index_pos;
+
+//detect vía points
+	bool via_point_flag;//changing target between trajectory segments
+	vector<Transformation3D> all_space_via_points;
 
 };
 

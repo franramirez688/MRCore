@@ -1,7 +1,7 @@
 /**********************************************************************
  *
  * This code is part of the MRcore project
- * Author:  Rodrigo Azofra Barrio &Miguel Hernando Gutierrez
+ * Author:  Francisco Ramirez de Anton Montoro
  * 
  *
  * MRcore is licenced under the Common Creative License,
@@ -50,12 +50,12 @@ Actuator::Actuator(double _speed,double _maxSpeed,double _acceleration, double _
 	maxAcceleration=_maxAcceleration;
 
 	a0=a1=a2=a3=0.0;	
-	
-	activateTVP=true;activateCPT=false;
-	typeTrajectoryTVP="MaximumSpeedAcceleration";
+	frequency=1000;
 
-	//
-	index=0;
+	PositionInterpolatorTVP="MaximumSpeedAcceleration";
+
+	index_veloc_intermediates=0;
+	interpolator_position=TVP;
 }
 
 
@@ -92,20 +92,14 @@ double Actuator::setAcceleration(double ac)
 bool Actuator::setTarget(double val)
 {
 
-	if (s_Joint)
-	{	
+	double valMax,valMin;
+	s_Joint->getMaxMin(valMax,valMin);
 
-		double valMax,valMin;
-		s_Joint->getMaxMin(valMax,valMin);
-
-		if((val<valMin)||(val>valMax))
-			return false;
-		target=val;
-		targetActive=true;
-		return true;
-	}
-	else
+	if((val<valMin)||(val>valMax))
 		return false;
+	target=val;
+	targetActive=true;
+	return true;
 }
 
 //bool Actuator::setTargetIntermediate(double _time)
@@ -133,16 +127,32 @@ bool Actuator::setTarget(double val)
 
 void Actuator::simulate(double delta_t)
 {
-	if (s_Joint)
-	{
-		if(activateCPT)
-			simulateCPT(delta_t);
-		if(activateTVP)
-			simulateTVP(delta_t);
-		//simulateSPLINE(delta_t);
-	}
-	else 
+		
+	if(targetActive==false)
 		return;
+	
+	double value=s_Joint->getValue();
+	double d=target-value;	
+	if(interpolator_position==CPT)
+	{	
+		double inc=delta_t*speed;
+		if(d<0)inc=((-inc<d)?d:(-inc));
+		else inc=(inc>d?d:inc);
+		if(d<EPS){
+			targetActive=false;
+			s_Joint->setValue(target);
+		}
+		else s_Joint->setValue(value+inc);
+	}
+
+	else if(interpolator_position==TVP || interpolator_position==SPLINE)
+	{
+		if(fabs(d)<EPS)
+			targetActive=false;
+		else
+			s_Joint->setValue(target);
+	}
+
 }
 
 
@@ -158,169 +168,121 @@ void Actuator::linkTo (PositionableEntity *p)
 }
 
 
-/********************************************************
-	METHODS TO CALCULATE TARGET BY CUBIC POLINOMIAL
-*********************************************************/
-void Actuator::setCubicPolinomialCoeficients(double path,double targetTime)
+/******************************************************************************
+	SPECIFIC METHODS CUBIC POLINOMIAL AND SPLINE INTERPOLATORS
+*******************************************************************************/
+void Actuator::computeCubicPolinomialCoeficients(double path_joint,double targetTime)
 {
-	a0=s_Joint->getValue();//Current coordiantes
-	a1=0.0;
-	a2=( 3*(path)/(targetTime*targetTime));
-	a3=(-2*(path)/(targetTime*targetTime*targetTime));
-}
-
-bool Actuator::setTargetCPT(double _time)
-{
-	if (_time<0) return false;
-
-	double val=a0 + a1*_time + a2*_time*_time + a3*_time*_time*_time;
-	double sp=a1+ 2*a2*_time + 3*a3*_time*_time;
-	
-	setSpeed(sp);
-
-	return setTarget(val);
-}
-
-void Actuator::simulateCPT(double delta_t)
-{
-	if(targetActive==false)return;
-
-	double value=s_Joint->getValue();
-	double d=target-value;
-	double inc=delta_t*speed;
-
-	if(d<0)inc=((-inc<d)?d:(-inc));
-	else inc=(inc>d?d:inc);
-	if(d<EPS){
-		targetActive=false;
-		s_Joint->setValue(target);
+	if (interpolator_position==CPT)
+	{
+		a0=s_Joint->getValue();//Current coordiantes
+		a1=0.0;
+		a2=( 3*(path_joint)/(targetTime*targetTime));
+		a3=(-2*(path_joint)/(targetTime*targetTime*targetTime));
 	}
-	else s_Joint->setValue(value+inc);
+	else if (interpolator_position==SPLINE)
+	{
+		double stretch=path_joint;
+		double Tk=targetTime;
 
+		if(index_veloc_intermediates>=(int)velocInter.size())return;
+		a0=s_Joint->getValue();//Current coordiantes
+		a1=velocInter[index_veloc_intermediates];
+		a2=( 1/Tk)*((3*(stretch)/(Tk))-2*velocInter[index_veloc_intermediates]-velocInter[index_veloc_intermediates+1]);
+		a3=(1/(Tk*Tk))*(((-2*(stretch))/Tk)+velocInter[index_veloc_intermediates]+velocInter[index_veloc_intermediates+1]);
+
+		index_veloc_intermediates++;
+	}
+}
+void Actuator::simulateInterpolatorPolinomial(double _time)
+{
+	double val=0.00,sp=0.00;
+
+	val=a0 + a1*_time + a2*square(_time) + a3*square(_time)*_time;
+
+	if (interpolator_position == CPT)
+	{
+		sp=a1+ 2*a2*_time + 3*a3*square(_time);
+		setSpeed(sp);
+	}
+
+	setTarget(val);
 }
 
 /******************************************************************
-	METHODS TO CALCULATE TARGET BY TRAPEZOIDAL VELOCITY PROFILE
+	SPECIFIC METHODS INTERPOLATOR TRAPEZOIDAL VELOCITY PROFILE
 *******************************************************************/
 
-bool Actuator::setTargetTVP(double qInit,double q_target,int signMovement,double timeInit,double timeFinal,double ta, double _time)
+void Actuator::loadAttributesTVP(double _q_target, int _signMovement, double _TVP_acceleration_time, double targetTime)
 {
-	double val;
-
-	if(getTypeTrajectoryTVP()=="MaximumSpeedAcceleration")
-	{
-		//Acceleration phase
-		if (_time<(timeInit+ta) && _time>=timeInit)
-			val=qInit+signMovement*((getAcceleration()*0.5)*square(_time-timeInit));
-
-		//Velocity constant phase
-		if (_time>=(timeInit+ta) && _time<=(timeFinal-ta))
-			val=qInit+signMovement*(getSpeed()*(_time-timeInit-ta*0.5));
-
-		//Deceleration phase
-		if (_time>(timeFinal-ta) && _time<=timeFinal)
-			val=q_target-signMovement*((getAcceleration()*0.5)*square(timeFinal-_time));
-	}
-	else if(getTypeTrajectoryTVP()=="BangBang")
-	{
-		//Acceleration phase
-		if (_time<(timeFinal*0.5) && _time>=timeInit)
-			val=qInit+signMovement*((getMaxAcceleration()*0.5)*square(_time-timeInit));
-
-		//Deceleration phase
-		if (_time>=(timeFinal*0.5) && _time<=timeFinal)
-			val=q_target-signMovement*((getMaxAcceleration()*0.5)*square(timeFinal-_time));
-	}
-
-	return setTarget(val);
+	signMovement = _signMovement;
+	q_init = s_Joint->getValue();//initial value
+	q_target = _q_target;	
+	initial_time = 0.00;
+	target_time = targetTime;
+	signMovement = signMovement;
+	TVP_acceleration_time = _TVP_acceleration_time;
 }
 
-
-bool Actuator::setTypeTrajectoryTVP(string _type)
+void Actuator::simulateInterpolatorTVP(double _time)
 {
-	typeTrajectoryTVP=string();
+	double val=0.00;
 
-	if(_type=="BangBang")
+    if(getPositionInterpolatorTVP()=="MaximumSpeedAcceleration")
+    {
+        //Acceleration phase
+        if (_time<(initial_time+TVP_acceleration_time) && _time>=initial_time)
+			val=q_init+signMovement*((getAcceleration()*0.5)*square(_time-initial_time));
+
+        //Velocity constant phase
+        if (_time>=(initial_time+TVP_acceleration_time) && _time<=(target_time-TVP_acceleration_time))
+			val=q_init+signMovement*(getSpeed()*(_time-initial_time-TVP_acceleration_time*0.5));
+
+        //Deceleration phase
+        if (_time>(target_time-TVP_acceleration_time) && _time<=target_time)
+			val=q_target-signMovement*((getAcceleration()*0.5)*square(target_time-_time));
+    }
+    else if(getPositionInterpolatorTVP()=="BangBang")
+    {
+        //Acceleration phase
+        if (_time<(target_time*0.5) && _time>=initial_time)
+			val=q_init+signMovement*((getMaxAcceleration()*0.5)*square(_time-initial_time));
+
+        //Deceleration phase
+        if (_time>=(target_time*0.5) && _time<=target_time)
+			val=q_target-signMovement*((getMaxAcceleration()*0.5)*square(target_time-_time));
+    }
+
+    setTarget(val);
+
+}
+
+bool Actuator::setPositionInterpolatorTVP(string _type)
+{
+	PositionInterpolatorTVP = string();
+
+	if(_type=="BangBang" || _type=="MaximumSpeedAcceleration")
 	{
-		typeTrajectoryTVP=_type;
+		PositionInterpolatorTVP=_type;
 		return true;
 	}
-	if(_type=="MaximumSpeedAcceleration")
-	{
-		typeTrajectoryTVP=_type;
-		return true;
-	}
-	
+
 	return false;
 }
 
-void Actuator::simulateTVP(double delta_t)
-{
-	double value=s_Joint->getValue();
-
-	if(targetActive==false)return;
-	double d=fabs(target-value);
-	if(d<EPS)
-		targetActive=false;
-	else
-		s_Joint->setValue(target);
-}
-
-
-
 /******************************************************************
-	METHODS TO CALCULATE TARGET WITH SPLINE TRAJECTORY
+	METHOD TO SET VELOC. INTERMEDIATES IN SPLINE INTERPOLATOR
 *******************************************************************/
-void Actuator::setVelocIntermediates (vector<double> veloc)
+void Actuator::computeVelocIntermediates (vector<double> veloc)
 {
 	double auxsp;
 	for(int i=0;i<(int)veloc.size();i++)
 	{
-		if(veloc[i]<0)auxsp=0.0;
+		if(veloc[i]<0)
+			auxsp=0.0;
 		else
 			auxsp=veloc[i]>maxSpeed?maxSpeed:veloc[i];
 		velocInter.push_back(auxsp);
 	}
 }
-
-
-void  Actuator::simulateSPLINE(double delta_t)
-{
-	double value=s_Joint->getValue();
-
-	if(targetActive==false)return;
-	double d=fabs(target-value);
-	if(d<EPS)
-		targetActive=false;
-	else
-		s_Joint->setValue(target);
-
-
-}
-
-bool  Actuator::setTargetSPLINE(double _time)
-{
-	if (_time<0) return false;
-
-	double val=a0 + a1*_time + a2*_time*_time + a3*_time*_time*_time;
-//	double sp=a1+ 2*a2*_time + 3*a3*_time*_time;
-	
-//	setSpeed(sp);
-
-	return setTarget(val);
-
-}
-
-
-void  Actuator::setCubicPolinomialCoeficientsSPLINE(double strech,double Tk)
-{
-	if(index>=(int)velocInter.size())return;
-	a0=s_Joint->getValue();//Current coordiantes
-	a1=velocInter[index];
-	a2=( 1/Tk)*((3*(strech)/(Tk))-2*velocInter[index]-velocInter[index+1]);
-	a3=(1/(Tk*Tk))*(((-2*(strech))/Tk)+velocInter[index]+velocInter[index+1]);
-
-	index++;
-}
-
 }//mr
