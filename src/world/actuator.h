@@ -115,12 +115,12 @@ public:
 	void loadAttributesTVP(double _q_target, int _signMovement, double _TVP_acceleration_time, double targetTime);
 	//void simulateInterpolatorTVP(double qInit,double q_target,int signMovement,double _time, 
 	//								   double targetTime, double TVP_acceleration_time);
-	void simulateInterpolatorTVP(double _time);
+	void computeTargetInterpolatorTVP(double _time);
 
 //specific methods SPLINE and Cubical Polinomial Trajectory (CPT) interpolators 
 	void computeCubicPolinomialCoeficients(double path_joint,double targetTime);//used by both
 	void computeVelocIntermediates (vector<double> veloc);//specific for SPLINE
-	void simulateInterpolatorPolinomial(double _time);//used by both
+	void computeTargetInterpolatorPolinomial(double _time);//used by both
 
 //Attributes
 protected:

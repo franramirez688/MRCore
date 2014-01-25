@@ -194,7 +194,7 @@ void Actuator::computeCubicPolinomialCoeficients(double path_joint,double target
 		index_veloc_intermediates++;
 	}
 }
-void Actuator::simulateInterpolatorPolinomial(double _time)
+void Actuator::computeTargetInterpolatorPolinomial(double _time)
 {
 	double val=0.00,sp=0.00;
 
@@ -224,7 +224,7 @@ void Actuator::loadAttributesTVP(double _q_target, int _signMovement, double _TV
 	TVP_acceleration_time = _TVP_acceleration_time;
 }
 
-void Actuator::simulateInterpolatorTVP(double _time)
+void Actuator::computeTargetInterpolatorTVP(double _time)
 {
 	double val=0.00;
 
