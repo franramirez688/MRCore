@@ -199,21 +199,21 @@ void RobotSim::simulate(double delta_t)
 			*****************************************************************/
 			if (interpolator_position==CPT)
 				for(int i=0;i<(int)actuators.size();i++){
-					actuators[i]->simulateInterpolatorPolinomial(time);}
+					actuators[i]->computeTargetInterpolatorPolinomial(time);}
 
 			/*****************************************************************
 				IF INTERPOLATOR SELECTED IS TRAPEZOIDAL VELOCITY PROFILE TYPE 
 			 *****************************************************************/
 			else if (interpolator_position==TVP)
 				for (int i=0;i<(int)actuators.size();i++)
-					actuators[i]->simulateInterpolatorTVP(time);
+					actuators[i]->computeTargetInterpolatorTVP(time);
 
 			/*************************************************************
 				IF INTERPOLATOR SELECTED IS SPLINE TRAJECTORY TYPE 
 			**************************************************************/
 			else if (interpolator_position==SPLINE)
 				for(int i=0;i<(int)actuators.size();i++){
-					actuators[i]->simulateInterpolatorPolinomial(time);}
+					actuators[i]->computeTargetInterpolatorPolinomial(time);}
 
 			time+=delta_t;
 		}
