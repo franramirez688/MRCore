@@ -67,6 +67,8 @@ void FaceSetPart::writeToXML(XMLElement* parent)
 	for(int i=0;i<num;i++)
 		faces[i].writeToXML(parent);
 }
+
+
 void FaceSetPart::readFromXML(XMLElement* parent)
 {	
 	SolidEntity::readFromXML(parent);
@@ -74,6 +76,14 @@ void FaceSetPart::readFromXML(XMLElement* parent)
 	if (num)
 	{
 		XMLElement** _faces=parent->GetChildren();
+		if (faces.size()>0)
+		{
+			for(int j=faces.size()-1;j>=0;j--)
+			{
+				faces.erase(faces.begin()+j);
+				absolutefaces.erase(absolutefaces.begin()+j);
+			}
+		}
 		for(int i=0;i<num;i++)
 		{
 			Face aux;
@@ -81,9 +91,8 @@ void FaceSetPart::readFromXML(XMLElement* parent)
 			addFace(aux);
 		}
 	}
-
-
 }
+
 
 ostream& operator<<(ostream& os, const FaceSetPart& p)
 {

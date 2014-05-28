@@ -177,23 +177,14 @@ void Face::writeToXML(XMLElement* parent)//,int numface)
 
 void Face::readFromXML(XMLElement* parent)
 {
-
 		XMLElement* fac;
 		char check_parent[50]={0};
-		parent->GetParent()->GetElementName(check_parent);
-
-		if(parent->FindElementZ("face"))
-			fac=parent->FindElementZ("face");
-		
-		else if(string(check_parent)=="FaceSetPart")
-			fac=parent;
+		if(parent->FindElementZ("face")) fac=parent->FindElementZ("face");
+		else fac=parent;
 
 			if (fac->FindElementZ("vertex"))
 			{
-
-
 				int num=fac->FindElementZ("vertex")->GetContentsNum();
-
 				if(num)
 				{
 
@@ -212,11 +203,7 @@ void Face::readFromXML(XMLElement* parent)
 
 					}
 				 }
-			
-
-
-		}
-				
+		}	
 		
 		if(fac->FindElementZ("colour"))
 		{

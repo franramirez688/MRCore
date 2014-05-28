@@ -86,6 +86,15 @@ public:
 	FaceSetPart(const FaceSetPart &v){
 		(*this)=v;
 	}
+	
+	Face* getFaceP_I(int num)
+	{
+		if(absolutefaces.size()>0)
+			if (0<=num<absolutefaces.size())
+				return &absolutefaces[num];
+	}
+
+	int getSize(){return absolutefaces.size();}
 
 //overwrittn virtual methods
 	virtual void locationUpdated();
