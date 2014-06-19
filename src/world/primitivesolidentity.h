@@ -84,6 +84,8 @@ public:
 	virtual void readFromStream(Stream& stream){SolidEntity::readFromStream(stream);};
 	virtual void writeToXML(XMLElement* parent){SolidEntity::writeToXML(parent);}
 	virtual void readFromXML(XMLElement* parent){SolidEntity::readFromXML(parent);}
+	virtual char* CreateXMLText(){return SolidEntity::CreateXMLText();}
+	virtual void loadFromXMLText(char* XmlText){SolidEntity::loadFromXMLText(XmlText);}
 
 	void locationUpdated();
 

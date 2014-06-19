@@ -83,6 +83,18 @@ void PositionableEntity::readFromXML(XMLElement* parent)
 	setRelativeT3D(aux);
 }
 
+char* PositionableEntity::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"CylindricalPart");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void PositionableEntity::loadFromXMLText(char* XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
 
 ostream& operator<<(ostream& os, const PositionableEntity& p)
 {

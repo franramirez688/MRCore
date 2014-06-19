@@ -94,6 +94,19 @@ void PowerCube70Sim::readFromXML(XMLElement* parent)
 	SolidEntity::readFromXML(parent);
 }
 
+char* PowerCube70Sim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"PowerCube70Sim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void PowerCube70Sim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 
 void PowerCube70Sim::simulate(double delta_t)
 {

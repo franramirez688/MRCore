@@ -38,6 +38,19 @@ void QuadrotorSim::readFromXML(XMLElement* parent)
 	SolidEntity::readFromXML(parent);
 }
 
+char* QuadrotorSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"QuadrotorSim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void QuadrotorSim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 void QuadrotorSim::simulate(double t)
 {
 	Transformation3D position=getAbsoluteT3D();

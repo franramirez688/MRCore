@@ -57,6 +57,19 @@ void CameraSim::readFromXML(XMLElement* parent)
 	SolidEntity::readFromXML(parent);
 }
 
+char* CameraSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"CameraSim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void CameraSim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 ostream& operator<<(ostream& os, const CameraSim& p)
 {
 	//os<<p.x<<" "<<p.y<<" "<<p.z;

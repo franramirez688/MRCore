@@ -55,7 +55,8 @@ public:
 	virtual void readFromStream(Stream& stream);
 	virtual void writeToXML(XMLElement* parent);
 	virtual void readFromXML(XMLElement* parent);
-
+	virtual void loadFromXMLText(char* XmlText);
+	virtual char* CreateXMLText();
 	//Constructor
 	Puma560Sim(void);
 

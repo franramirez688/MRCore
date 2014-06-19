@@ -87,12 +87,19 @@ public:
 		(*this)=v;
 	}
 	
-	Face* getFaceP_I(int num)
+	//Used only to get the face representation
+	//This function doesn´t involve any mathematical calculation
+	Face* getFaceI(int num)
 	{
 		if(absolutefaces.size()>0)
-			if (0<=num<absolutefaces.size())
+			if (0<=num<faces.size())
+			{
 				return &absolutefaces[num];
+			}
 	}
+
+	//Change face and update WiredModel
+	void ModifyFace(int index,Face face);
 
 	int getSize(){return absolutefaces.size();}
 
@@ -108,6 +115,8 @@ public:
 	virtual void readFromStream(Stream& stream);
 	virtual void writeToXML(XMLElement* parent);
 	virtual void readFromXML(XMLElement* parent);
+	virtual char* CreateXMLText();
+	virtual void loadFromXMLText(char* XmlText);
 
 	void drawGL();
 //specific operations that have to be implemented due to its solid entity condition

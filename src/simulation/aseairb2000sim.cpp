@@ -55,6 +55,19 @@ void AseaIRB2000Sim::writeToXML(XMLElement* parent)
 void AseaIRB2000Sim::readFromXML(XMLElement* parent)
  {SolidEntity::readFromXML(parent);}
 
+char* AseaIRB2000Sim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"AseaIRB2000");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void AseaIRB2000Sim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 AseaIRB2000Sim::AseaIRB2000Sim()
 {
 	name="ASEA IRB 2000";

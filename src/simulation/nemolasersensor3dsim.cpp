@@ -40,6 +40,19 @@ void NemoLaserSensor3DSim::readFromXML(XMLElement* parent)
 	SolidEntity::readFromXML(parent);
 }
 
+char* NemoLaserSensor3DSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"NemoLaserSensor3DSim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void NemoLaserSensor3DSim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 void NemoLaserSensor3DSim::drawGL()
 {
 	//it si possible to make the drawing independent of the geometric model

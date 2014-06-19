@@ -93,6 +93,18 @@ void FaceSetPart::readFromXML(XMLElement* parent)
 	}
 }
 
+char* FaceSetPart::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"FaceSetPart");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void FaceSetPart::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
 
 ostream& operator<<(ostream& os, const FaceSetPart& p)
 {
@@ -133,6 +145,16 @@ void FaceSetPart::addFace(Face face)
 	face.setBase(getAbsoluteT3D()*face.getBase());
 	absolutefaces.push_back(face);
 	createWiredModel();
+}
+
+void FaceSetPart::ModifyFace(int index,Face face)
+{
+	if ((0<=index)&&(index<faces.size()))
+	{
+		faces.erase(faces.begin()+index);
+		absolutefaces.erase(absolutefaces.begin()+index);
+		addFace(face);  //add the new face and update the wired model
+	}
 }
 
 void FaceSetPart::drawGL()

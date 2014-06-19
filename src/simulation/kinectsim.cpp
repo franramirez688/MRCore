@@ -57,6 +57,19 @@ void KinectSim::writeToXML(XMLElement* parent)
 void KinectSim::readFromXML(XMLElement* parent)
  {SolidEntity::readFromXML(parent);}
 
+char* KinectSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"KinectSim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void KinectSim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 ostream& operator<<(ostream& os, const KinectSim& p)
 {
 	//os<<p.x<<" "<<p.y<<" "<<p.z;

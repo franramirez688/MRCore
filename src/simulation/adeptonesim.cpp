@@ -47,6 +47,19 @@ void AdeptOneSim::writeToXML(XMLElement* parent)
 void AdeptOneSim::readFromXML(XMLElement* parent)
  {SolidEntity::readFromXML(parent);}
 
+char* AdeptOneSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"AseaIRB2000");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void AdeptOneSim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 AdeptOneSim::AdeptOneSim()
 {
 	name="SCARA Adept One Sim";

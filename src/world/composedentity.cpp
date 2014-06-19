@@ -63,6 +63,18 @@ void ComposedEntity::readFromXML(XMLElement* parent)
 	EntitySet::readFromXML(parent);
 }
 
+char* ComposedEntity::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"ComposedEntity");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void ComposedEntity::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
 
 ComposedEntity::ComposedEntity(void)
 {

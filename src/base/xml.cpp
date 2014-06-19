@@ -1439,6 +1439,18 @@ int XMLElement :: DeleteUnloadedElementFile(int i)
 #endif
 	}
 
+char* XMLElement::CreateXMLText()
+{
+	size_t M =MemoryUsage();
+	Z<char> d(M);
+	Export((FILE*)d.operator char *(),1,XML_SAVE_MODE_DEFAULT,XML_TARGET_MODE_MEMORY);
+	size_t S = strlen(d);
+	char* xmltext;
+	xmltext=(char*)malloc(S);
+	strcpy(xmltext,d.operator char* ());
+	return xmltext;
+}
+
 int XMLElement :: RemoveElement(unsigned int i)
 	{
 #ifdef XML_USE_STL

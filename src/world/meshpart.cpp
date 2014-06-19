@@ -70,6 +70,19 @@ void MeshPart::readFromXML(XMLElement* parent)
 	createWiredModel();
 }
 
+char* MeshPart::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"MeshPart");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void MeshPart::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 void MeshPart::createWiredModel()
 {
 	int i,num;

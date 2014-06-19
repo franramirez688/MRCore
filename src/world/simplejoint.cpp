@@ -58,10 +58,14 @@ void SimpleJoint::writeToXML(XMLElement* parent)
 {
 	//XMLAux aux;
 	//XMLElement* sJoint=new XMLElement(parent,"simplejoint");
-	XMLVariable* ax= new XMLVariable ("axis",(const char*)axis);
+	char* auxAxis;
+	if (axis==X_AXIS) auxAxis="X_AXIS";
+	if (axis==Y_AXIS) auxAxis="Y_AXIS"; 
+	if (axis==Z_AXIS) auxAxis="Z_AXIS";
+	XMLVariable* ax= new XMLVariable ("axis",auxAxis);
 	XMLVariable* fac= new XMLVariable ("factor",XMLAux::string_Convert<double>(factor).c_str());
 	XMLVariable* offs= new XMLVariable ("offset",XMLAux::string_Convert<double>(offset).c_str());
-	XMLVariable* prismat= new XMLVariable ("prisamtic",XMLAux::string_ConvertBool(prismatic).c_str());
+	XMLVariable* prismat= new XMLVariable ("prismatic",XMLAux::string_ConvertBool(prismatic).c_str());
 	XMLVariable* val= new XMLVariable ("value",XMLAux::string_Convert<double>(value).c_str());
 	XMLVariable* _vmax= new XMLVariable ("vmax",XMLAux::string_Convert<double>(vmax).c_str());
 	XMLVariable* _vmin= new XMLVariable ("vmin",XMLAux::string_Convert<double>(vmin).c_str());
@@ -137,6 +141,20 @@ void SimpleJoint::readFromXML(XMLElement* parent)
 
 	Joint::readFromXML(parent);
 	 
+}
+
+char* SimpleJoint::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"SimpleJoint");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+
+void SimpleJoint::loadFromXMLText(char* XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
 }
 
 ostream& operator<<(ostream& os, const SimpleJoint& p)

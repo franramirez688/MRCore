@@ -114,6 +114,19 @@ void SpherePart::readFromXML(XMLElement* parent)
 
 }
 
+char* SpherePart::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"Sphere");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void SpherePart::loadFromXMLText(char* XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 
 ostream& operator<<(ostream& os, const SpherePart& s)
 {

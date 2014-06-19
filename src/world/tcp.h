@@ -84,6 +84,8 @@ public:
 	virtual void readFromStream(Stream& stream){PositionableEntity::readFromStream(stream);}
 	virtual void writeToXML(XMLElement* parent){PositionableEntity::writeToXML(parent);}
 	virtual void readFromXML(XMLElement* parent){PositionableEntity::readFromXML(parent);}
+	virtual char* CreateXMLText(){return PositionableEntity::CreateXMLText();}
+	virtual void loadFromXMLText(char* XmlText){PositionableEntity::loadFromXMLText(XmlText);}
 
 
 };

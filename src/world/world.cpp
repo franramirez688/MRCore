@@ -58,6 +58,17 @@ void World::readFromXML(XMLElement* parent)
 	EntitySet::readFromXML(parent);
 }
 
+char* World::CreateXMLText()
+{
+	char* textXML;
+	textXML=EntitySet::CreateXMLText();
+	return textXML;
+}
+
+void World::loadFromXMLText(char* XmlText)
+{
+	EntitySet::loadFromXMLText(XmlText);
+}
 
 World::World(void)
 {
