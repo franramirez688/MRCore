@@ -112,6 +112,8 @@ public:
 	virtual void readFromStream(Stream& stream);
 	virtual void writeToXML(XMLElement* parent);
 	virtual void readFromXML(XMLElement* parent);
+	virtual char* CreateXMLText();
+	virtual void loadFromXMLText(char* XmlText);
 
 	void drawGL();
 	double getHeight(){return height;}

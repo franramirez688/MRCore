@@ -103,6 +103,19 @@ void SolidEntity::readFromXML(XMLElement* parent)
 
 }
 
+char* SolidEntity::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"SolidEntity");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void SolidEntity::loadFromXMLText(char* XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 
 void SolidEntity::locationUpdated()
 {

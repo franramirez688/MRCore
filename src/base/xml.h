@@ -368,6 +368,7 @@ class XMLElement
 		int RemoveAllElements();
 		int RemoveTemporalElements(bool Deep = false);
 		int DeleteUnloadedElementFile(int i);
+		char* CreateXMLText();
 
 #ifdef XML_USE_STL
 #else

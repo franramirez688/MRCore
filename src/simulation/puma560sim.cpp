@@ -57,6 +57,19 @@ void Puma560Sim::readFromXML(XMLElement* parent)
 	SolidEntity::readFromXML(parent);
 }
 
+char* Puma560Sim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"Puma560Sim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void Puma560Sim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 Puma560Sim::Puma560Sim()
 {
 	name="Puma 560";

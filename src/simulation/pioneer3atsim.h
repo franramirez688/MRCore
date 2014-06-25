@@ -52,6 +52,8 @@ public:
 	virtual void readFromStream(Stream& stream);
 	virtual void writeToXML(XMLElement* parent);
 	virtual void readFromXML(XMLElement* parent);
+	virtual char* CreateXMLText();
+	virtual void loadFromXMLText(char* XmlText);
 
 	virtual void simulate(double delta_t);
 	virtual void drawGL();

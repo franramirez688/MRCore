@@ -100,6 +100,20 @@ void WheeledBaseSim::readFromXML(XMLElement* parent)
 	}
 
 }
+
+char* WheeledBaseSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"WheeledBaseSim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void WheeledBaseSim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 void WheeledBaseSim::simulate(double delta_t)
 {
 	

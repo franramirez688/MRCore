@@ -98,6 +98,8 @@ public:
 	}
 	void writeToXML(XMLElement* parent);
 	void readFromXML(XMLElement* parent);
+	virtual char* CreateXMLText();
+	virtual void loadFromXMLText(char* XmlText);
 
 	//operator =
 	const SolidEntity &operator=(const SolidEntity &s){

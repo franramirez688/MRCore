@@ -83,6 +83,20 @@ void Pioneer3ATSim::readFromXML(XMLElement* parent)
 {
 	WheeledBaseSim::readFromXML(parent);
 }
+
+char* Pioneer3ATSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"Pioneer3ATSim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void Pioneer3ATSim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 void Pioneer3ATSim::drawGL()
 {
 	//it si possible to make the drawing independent of the geometric model

@@ -48,6 +48,8 @@ public:
 	void readFromStream(Stream& stream);
 	void writeToXML(XMLElement* parent);
 	void readFromXML(XMLElement* parent);
+	virtual char* CreateXMLText();
+	virtual void loadFromXMLText(char* XmlText);
 
 	virtual void drawGL();
 };

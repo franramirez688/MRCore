@@ -80,6 +80,8 @@ public:
 	virtual void readFromStream(Stream& stream);
 	virtual void writeToXML(XMLElement* parent);
 	virtual void readFromXML(XMLElement* parent);
+	virtual void loadFromXMLText(char* XmlText); 
+	virtual char* CreateXMLText();
 
 	//number of objects included
 	int getNumObjects(){return (int)objects.size();}

@@ -56,6 +56,19 @@ void LaserSensor3DSim::writeToXML(XMLElement* parent)
 void LaserSensor3DSim::readFromXML(XMLElement* parent)
  {SolidEntity::readFromXML(parent);}
 
+char* LaserSensor3DSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"LaserSensor3DSim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void LaserSensor3DSim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 
 //constructors
 LaserSensor3DSim::LaserSensor3DSim(void)

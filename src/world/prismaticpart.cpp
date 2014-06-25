@@ -83,6 +83,19 @@ void PrismaticPart::readFromXML(XMLElement* parent)
 
 }
 
+char* PrismaticPart::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"PrismaticPart");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void PrismaticPart::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 ostream& operator<<(ostream& os, const PrismaticPart& p)
 {
 	//os<<p.x<<" "<<p.y<<" "<<p.z;

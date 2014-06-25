@@ -50,7 +50,8 @@ public:
 	virtual void readFromStream(Stream& stream);
 	virtual void writeToXML(XMLElement* parent);
 	virtual void readFromXML(XMLElement* parent);
-
+	virtual char* CreateXMLText();
+	virtual void loadFromXMLText(char* XmlText);
 	//Constructor
 	WheeledBaseSim(double w=0.35, double l=0.5, double wh_radius=0.1, double wh_width=0.05);
 

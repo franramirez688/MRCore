@@ -70,4 +70,17 @@ void LMS100Sim::readFromXML(XMLElement* parent)
 {
 	SolidEntity::readFromXML(parent);
 }
+
+char* LMS100Sim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"LMS100Sim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void LMS100Sim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
 }; //Namespace mr

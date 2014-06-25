@@ -400,6 +400,19 @@ void EntitySet::readFromXML(XMLElement* parent)
 		}
 }
 
+char* EntitySet::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"World");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void EntitySet::loadFromXMLText(char* XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 EntitySet::EntitySet(void)
 {
 }

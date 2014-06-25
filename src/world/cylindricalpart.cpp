@@ -79,6 +79,19 @@ void CylindricalPart::readFromXML(XMLElement* parent)
 	PrimitiveSolidEntity::readFromXML(parent);
 }
 
+char* CylindricalPart::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"CylindricalPart");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void CylindricalPart::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 ostream& operator<<(ostream& os, const CylindricalPart& p)
 {
 	//os<<p.x<<" "<<p.y<<" "<<p.z;

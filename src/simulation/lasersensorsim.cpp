@@ -107,6 +107,19 @@ void LaserSensorSim::readFromXML(XMLElement* parent)
 	 
 }
 
+char* LaserSensorSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"LaserSensorSim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void LaserSensorSim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
 ostream& operator<<(ostream& os, const LaserSensorSim& p)
 {
 	//os<<p.x<<" "<<p.y<<" "<<p.z;

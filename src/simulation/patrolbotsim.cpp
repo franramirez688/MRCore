@@ -106,4 +106,17 @@ void PatrolbotSim::readFromXML(XMLElement* parent)
 {
 	WheeledBaseSim::readFromXML(parent);
 }
+
+char* PatrolbotSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"PatrolbotSim");
+	writeToXML(elem);
+	return elem->CreateXMLText();
+}
+
+void PatrolbotSim::loadFromXMLText(char *XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
 }; //Namespace mr
