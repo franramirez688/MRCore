@@ -116,7 +116,7 @@ void SpherePart::readFromXML(XMLElement* parent)
 
 char* SpherePart::CreateXMLText()
 {
-	XMLElement* elem=new XMLElement(0,"Sphere");
+	XMLElement* elem=new XMLElement(0,"SpherePart");
 	writeToXML(elem);
 	return elem->CreateXMLText();
 }
