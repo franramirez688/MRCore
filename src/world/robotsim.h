@@ -39,11 +39,12 @@
 #include "cylindricalpart.h"
 #include "tcp.h"
 #include "actuator.h"
+
 namespace mr
 {
 /*!
     \class RobotSim
-    A generic abstract class for robot manipulators. Includes a series of interfaces that allows to
+    A generic class for robot manipulators. Includes a series of interfaces that allows to
 	share common methods and operations. When a new Robot is defined, the series of links and
 	joints have to be included into the protected vectors. The same have to be done with the tcp.
 	Check the AdeptOne class as example.
@@ -69,17 +70,19 @@ enum OrientationInterpolator //types of orientation interpolators
 
 class RobotSim : public ComposedEntity 
 {
-	//DECLARE_MR_OBJECT(RobotSim)
+	DECLARE_MR_OBJECT(RobotSim)
+
 
 public:
 	//Serializers
 	virtual void writeToStream(Stream& stream){}
 	virtual void readFromStream(Stream& stream){}
-	virtual void writeToXML(XMLElement* parent){}
-	virtual void readFromXML(XMLElement* parent){}
-	virtual char* CreateXMLText(){return 0;}
-	virtual void loadFromXMLText(char* XmlText){}
-
+	virtual void writeToXML(XMLElement* parent);
+	virtual void readFromXML(XMLElement* parent);
+	virtual char* CreateXMLText();
+	virtual void loadFromXMLText(char* XmlText);
+	//Implemented to save a defined robotic class as robotSim
+	void writeToXMLasRobotSim(XMLElement* parent);
 
 //Constructor
 	RobotSim(void):tcp(0),interpolator_position(TVP),controlFrequency(100),
@@ -99,8 +102,8 @@ public:
 	Transformation3D getTcpLocation();
 //Forward and inverse kinematics Relative. The inverse kinematics must be defined for each new class of robot 
 	virtual bool forwardKinematics(const vector<double> &_q, Transformation3D& t);
-//Inverse kinematics. abstract.
-	virtual bool inverseKinematics(Transformation3D t06, vector<double> &_q, unsigned char conf=NULL)=0;
+//Inverse kinematics
+	virtual bool inverseKinematics(Transformation3D t06, vector<double> &_q, unsigned char conf=NULL){return true;}
 
 //Forward and inverse kinematics Absolute: generic methods. 
 	virtual bool forwardKinematicsAbs(vector<double> _q, Transformation3D& t);
