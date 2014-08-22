@@ -71,6 +71,7 @@ public:
 
 	
 	vector<XMLElement*> getXMLElementsObjects () {return pElem;}
+	XMLElement* getRoot(){return root;}
 
 private:
 	bool checkOverwrite;

@@ -38,6 +38,68 @@
 
 namespace mr
 {
+IMPLEMENT_MR_OBJECT(RobotSim)
+
+void RobotSim::writeToXML(XMLElement *parent)
+{
+	ComposedEntity::writeToXML(parent);
+}
+
+void RobotSim::writeToXMLasRobotSim(XMLElement* parent)
+{
+	ComposedEntity::writeToXML(parent);
+}
+
+void RobotSim::readFromXML(XMLElement* parent)
+{
+	ComposedEntity::readFromXML(parent);
+	int i,num=parent->GetChildrenNum();
+	XMLElement** pObj=parent->GetChildren();
+	XMLfile file(parent);
+	for(int i=0;i<num;i++)
+	{
+		if(dynamic_cast<Tcp *> (objects[i])) tcp=dynamic_cast<Tcp *> (objects[i]);
+	}
+	for(int i=0;i<num;i++)
+	{
+		if(dynamic_cast<Actuator *> (objects[i])) 
+		{
+			Actuator* act=dynamic_cast<Actuator *> (objects[i]);
+			actuators.push_back(act);
+		}
+	}
+	for(int i=0;i<num;i++)
+	{
+		if(dynamic_cast<SimpleJoint *> (objects[i])) 
+		{
+			SimpleJoint* joint=dynamic_cast<SimpleJoint *> (objects[i]);
+			joints.push_back(joint);
+		}
+	}
+	for(int i=0;i<num;i++)
+	{
+		if((!dynamic_cast<Actuator *> (objects[i]))&&(!dynamic_cast<SimpleJoint *> (objects[i]))&&(!dynamic_cast<Tcp *> (objects[i])))
+		{
+			SolidEntity* link=dynamic_cast<SolidEntity *> (objects[i]);
+			links.push_back(link);
+		}
+	}
+}
+
+char* RobotSim::CreateXMLText()
+{
+	XMLElement* elem=new XMLElement(0,"RobotSim");
+	writeToXMLasRobotSim(elem);
+	return elem->CreateXMLText();
+}
+
+void RobotSim::loadFromXMLText(char* XmlText)
+{
+	XML x;
+	readFromXML(x.Paste(XmlText));
+}
+
+
 bool RobotSim::checkRobotColision()
 {
 //checks the collision of robot and the rest of the objects

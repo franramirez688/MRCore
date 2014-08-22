@@ -147,13 +147,25 @@ void FaceSetPart::addFace(Face face)
 	createWiredModel();
 }
 
-void FaceSetPart::ModifyFace(int index,Face face)
+void FaceSetPart::modifyFace(int index,Face face)
 {
 	if ((0<=index)&&(index<faces.size()))
 	{
 		faces.erase(faces.begin()+index);
 		absolutefaces.erase(absolutefaces.begin()+index);
-		addFace(face);  //add the new face and update the wired model
+		faces.insert(faces.begin()+index,face);
+		box.reset();
+		for (int i=0;i<faces.size();i++) 
+		{
+			for(int j=0;j<faces[i].getNumVertex();j++)
+			{
+				box.includePoint(faces[i].getAbsoluteVertex(j));
+			}
+		}
+		setBoxNeedToBeUpdated();
+		face.setBase(getAbsoluteT3D()*face.getBase());
+		absolutefaces.insert(absolutefaces.begin()+index,face);
+		createWiredModel(); //Update wiredModel 
 	}
 }
 

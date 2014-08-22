@@ -87,21 +87,28 @@ public:
 		(*this)=v;
 	}
 	
-	//Used only to get the face representation
+	//Used only to get the face design
 	//This function doesn´t involve any mathematical calculation
 	Face* getFaceI(int num)
 	{
-		if(absolutefaces.size()>0)
+		if(faces.size()>0)
 			if (0<=num<faces.size())
-			{
-				return &absolutefaces[num];
-			}
+				return &faces[num];
 	}
 
-	//Change face and update WiredModel
-	void ModifyFace(int index,Face face);
+	//Used only to get the face representation and add it in canvas
+	//This function doesn´t involve any mathematical calculation
+	Face* getAbsoluteFaceI(int num){
+		if(faces.size()>0)
+			if (0<=num<faces.size())
+				return &absolutefaces[num];
+	}
 
-	int getSize(){return absolutefaces.size();}
+
+	//Change face and update WiredModel and bounding box
+	void modifyFace(int index,Face face);
+
+	int getSize(){return faces.size();}
 
 //overwrittn virtual methods
 	virtual void locationUpdated();

@@ -87,12 +87,15 @@ void SimpleJoint::writeToXML(XMLElement* parent)
 
 void SimpleJoint::readFromXML(XMLElement* parent)
 {
-
+	
 	if (parent->FindVariableZ("axis"))
 	{
-		char cad;
-		parent->FindVariableZ("axis")->GetValue(&cad);
-		axis=(Axis)cad;
+		char* cad=new char();
+		parent->FindVariableZ("axis")->GetValue(cad);
+		if(!strcmp(cad,"X_AXIS")) axis=X_AXIS;
+		if(!strcmp(cad,"Y_AXIS")) axis=Y_AXIS;
+		if(!strcmp(cad,"Z_AXIS")) axis=Z_AXIS;
+		//axis=(Axis)cad;
 	}
 	if (parent->FindVariableZ("factor"))
 	{
@@ -140,7 +143,6 @@ void SimpleJoint::readFromXML(XMLElement* parent)
 	//}
 
 	Joint::readFromXML(parent);
-	 
 }
 
 char* SimpleJoint::CreateXMLText()
