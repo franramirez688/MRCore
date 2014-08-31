@@ -83,8 +83,8 @@ EUITIbotSim::EUITIbotSim()
 //**************************************//
 
 			// CILINDRO(Cilindro)
-			CylindricalPart *auxCyl=new CylindricalPart(0.5,0.425);//Altura y radio
-			auxCyl->setColor(255,233,0);
+			CylindricalPart *auxCyl=new CylindricalPart(0.05,0.0425);//Altura y radio
+			auxCyl->setColor(0.8,0.6,0);
 			(*link)+=auxCyl;
 
 			// AÑADIMOS AL VECTOR LINKS
@@ -99,7 +99,7 @@ EUITIbotSim::EUITIbotSim()
 
 			//JOINT[0] = ARTICULACION 1 ROTACIONAL
 			SimpleJoint *auxJoint=new SimpleJoint(PI/2,-PI/2,true,0,Z_AXIS,false);
-			auxJoint->setRelativePosition(Vector3D(0,0,0.52));
+			
 			auxJoint->LinkTo(links[0]);
 			auxJoint->setValue(q_init[0]);
 			joints.push_back(auxJoint);
@@ -111,73 +111,74 @@ EUITIbotSim::EUITIbotSim()
 			//NUEVO GRUPO DE PIEZAS
 			link=new ComposedEntity;
 			link->setName("Link 1");
-
+			link->setRelativePosition(Vector3D(0,0,0.05));
+			link->setRelativeOrientation(0,0,-PI/2);
 
 //***********************************************************************//
 // LA ARTICULACION 1 ESTA COMPUESTA POR UN CILINDRO Y DOS PRISMAS IRREG. //
 //***********************************************************************//
 			// CILINDRO(Cilindro)
-			auxCyl=new CylindricalPart(0.06,0.425);//Altura y radio
-			auxCyl->setColor(255,0,0);
+			auxCyl=new CylindricalPart(0.006,0.0425);//Altura y radio
+			auxCyl->setColor(0.7,0,0);
 			(*link)+=auxCyl;
 
 			// PRISMA IRREGULAR DERECHO(Pris_Der)
 			PrismaticPart *auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.155,0));
-			list.push_back(Vector2D(0.155,0));
-			list.push_back(Vector2D(0.155,0.5));
-			list.push_back(Vector2D(0.125,0.55));
-			list.push_back(Vector2D(-0.125,0.55));
-			list.push_back(Vector2D(-0.155,0.5));
+			list.push_back(Vector2D(-0.0155,0));
+			list.push_back(Vector2D(0.0155,0));
+			list.push_back(Vector2D(0.0155,0.05));
+			list.push_back(Vector2D(0.0125,0.055));
+			list.push_back(Vector2D(-0.0125,0.055));
+			list.push_back(Vector2D(-0.0155,0.05));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,0,0);
-			auxPrism->setHeight(0.1);
-			auxPrism->setRelativePosition(Vector3D(-0.4,0,0.06));
+			auxPrism->setColor(0.7,0,0);
+			auxPrism->setHeight(0.01);
+			auxPrism->setRelativePosition(Vector3D(-0.04,0,0.006));
 			auxPrism->setRelativeOrientation(PI/2, 0, PI/2);
 			
 			(*link)+=auxPrism;
 
 			// PRISMA IRREGULAR IZQUIERDO(Cil_Izq)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.155,0));
-			list.push_back(Vector2D(0.155,0));
-			list.push_back(Vector2D(0.155,0.5));
-			list.push_back(Vector2D(0.125,0.55));
-			list.push_back(Vector2D(-0.125,0.55));
-			list.push_back(Vector2D(-0.155,0.5));
+			list.push_back(Vector2D(-0.0155,0));
+			list.push_back(Vector2D(0.0155,0));
+			list.push_back(Vector2D(0.0155,0.05));
+			list.push_back(Vector2D(0.0125,0.055));
+			list.push_back(Vector2D(-0.0125,0.055));
+			list.push_back(Vector2D(-0.0155,0.05));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,0,0);
-			auxPrism->setHeight(0.1);
-			auxPrism->setRelativePosition(Vector3D(0.3,0,0.06));
+			auxPrism->setColor(0.7,0,0);
+			auxPrism->setHeight(0.01);
+			auxPrism->setRelativePosition(Vector3D(0.03,0,0.006));
 			auxPrism->setRelativeOrientation(PI/2, 0 , PI/2);
 			
 			(*link)+=auxPrism;
 
 			// SERVO2(Servo2)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.095,-0.2));
-			list.push_back(Vector2D(0.095,-0.2));
-			list.push_back(Vector2D(0.095,0.2));
-			list.push_back(Vector2D(-0.095,0.2));
+			list.push_back(Vector2D(-0.0095,-0.02));
+			list.push_back(Vector2D(0.0095,-0.02));
+			list.push_back(Vector2D(0.0095,0.02));
+			list.push_back(Vector2D(-0.0095,0.02));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
 			auxPrism->setColor(0,0,0);
-			auxPrism->setHeight(0.35);
+			auxPrism->setHeight(0.035);
 			(*link)+=auxPrism;
 
 			// SERVO3(Servo3)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.095,-0.2));
-			list.push_back(Vector2D(0.095,-0.2));
-			list.push_back(Vector2D(0.095,0.2));
-			list.push_back(Vector2D(-0.095,0.2));
+			list.push_back(Vector2D(-0.0095,-0.02));
+			list.push_back(Vector2D(0.0095,-0.02));
+			list.push_back(Vector2D(0.0095,0.02));
+			list.push_back(Vector2D(-0.0095,0.02));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
 			auxPrism->setColor(0,0,0);
-			auxPrism->setHeight(0.35);
-			auxPrism->setRelativePosition(Vector3D(-0.29,0,0.3));
+			auxPrism->setHeight(0.035);
+			auxPrism->setRelativePosition(Vector3D(-0.029,0,0.03));
 			auxPrism->setRelativeOrientation(Z_AXIS,-PI/2);
 			(*link)+=auxPrism;
 
@@ -191,8 +192,8 @@ EUITIbotSim::EUITIbotSim()
 
 			//JOINT[1] = ARTICULACION 2 ROTACIONAL 
 			auxJoint=new SimpleJoint(25*PI/36 , -25*PI/36,true,0,Z_AXIS,false);
-			auxJoint->setRelativePosition(Vector3D(0.29,0,0.47));
-			auxJoint->setRelativeOrientation(0,-PI/2,0);
+			auxJoint->setRelativePosition(Vector3D(0.00,0,0.0955));
+			auxJoint->setRelativeOrientation(-PI/2,0,0);
 			auxJoint->LinkTo(joints[0]);
 			auxJoint->setValue(q_init[1]);
 			joints.push_back(auxJoint);
@@ -205,71 +206,72 @@ EUITIbotSim::EUITIbotSim()
 			//NUEVO GRUPO DE PIEZAS
 			link=new ComposedEntity;
 			link->setName("Link 2");
-
+			link->setRelativePosition(Vector3D(0,0,-0.029));
+			link->setRelativeOrientation(0,0,-PI/2);
 //***********************************************************************//
 // LA ARTICULACION 2 ESTA COMPUESTA POR 4 CILINDROS Y 6 PRISMAS IRREG.   //
 //***********************************************************************//
 
 			// CILINDRO IZQUIERDO ABAJO(Cil_Ab_Izq)
-			auxCyl=new CylindricalPart(0.03,0.175);//Altura y radio
-			auxCyl->setColor(255,233,0);
+			auxCyl=new CylindricalPart(0.003,0.0175);//Altura y radio
+			auxCyl->setColor(0.8,0.6,0);
 			auxCyl->setRelativePosition(Vector3D(0,0,0));
 			(*link)+=auxCyl;
 
 			// PRISMA IRREGULAR IZQUIERDA(Pris_Izq)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.13,0));
-			list.push_back(Vector2D(0.13,0));
-			list.push_back(Vector2D(0.13,1.1));
-			list.push_back(Vector2D(-0.13,1.1));
+			list.push_back(Vector2D(-0.013,0));
+			list.push_back(Vector2D(0.013,0));
+			list.push_back(Vector2D(0.013,0.11));
+			list.push_back(Vector2D(-0.013,0.11));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,233,0);
-			auxPrism->setHeight(0.03);
+			auxPrism->setColor(0.8,0.6,0);
+			auxPrism->setHeight(0.003);
 			auxPrism->setRelativePosition(Vector3D(0,0,0));
 			auxPrism->setRelativeOrientation(Z_AXIS,-PI/2);
 			(*link)+=auxPrism;
 
 			// CILINDRO IZQUIERDO ARRIBA(Cil_Ar_Izq)
-			auxCyl=new CylindricalPart(0.03,0.175);//Altura y radio
-			auxCyl->setColor(255,233,0);
-			auxCyl->setRelativePosition(Vector3D(1.1,0,0));
+			auxCyl=new CylindricalPart(0.003,0.0175);//Altura y radio
+			auxCyl->setColor(0.8,0.6,0);
+			auxCyl->setRelativePosition(Vector3D(0.11,0,0));
 			(*link)+=auxCyl;
 
 
 			// PRISMA IRREGULAR REFUERZO IZQUIERDA(Pris_Ref_Izq)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.4,0));
-			list.push_back(Vector2D(0.4,0));
-			list.push_back(Vector2D(0.315,0.04));
-			list.push_back(Vector2D(-0.315,0.04));
+			list.push_back(Vector2D(-0.04,0));
+			list.push_back(Vector2D(0.04,0));
+			list.push_back(Vector2D(0.0315,0.004));
+			list.push_back(Vector2D(-0.0315,0.004));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,233,0);
-			auxPrism->setHeight(0.26);
-			auxPrism->setRelativePosition(Vector3D(0.55,-0.13,0));
+			auxPrism->setColor(0.8,0.6,0);
+			auxPrism->setHeight(0.026);
+			auxPrism->setRelativePosition(Vector3D(0.055,-0.013,0));
 			auxPrism->setRelativeOrientation(X_AXIS,-PI/2);
 			(*link)+=auxPrism;
 
 			// PRISMA IRREGULAR CENTRO ABAJO(Pris_Cen_Ab)
 			auxPrism=new PrismaticPart;
 			list.push_back(Vector2D(0,0));
-			list.push_back(Vector2D(0.49,0));
-			list.push_back(Vector2D(0.49,0.08));
-			list.push_back(Vector2D(0.4,0.08));
-			list.push_back(Vector2D(0.4,0.27));
-			list.push_back(Vector2D(0.33,0.27));
-			list.push_back(Vector2D(0.33,0.08));
-			list.push_back(Vector2D(0.16,0.08));
-			list.push_back(Vector2D(0.16,0.27));
-			list.push_back(Vector2D(0.09,0.27));
-			list.push_back(Vector2D(0.09,0.08));
-			list.push_back(Vector2D(0,0.08));
+			list.push_back(Vector2D(0.049,0));
+			list.push_back(Vector2D(0.049,0.008));
+			list.push_back(Vector2D(0.04,0.008));
+			list.push_back(Vector2D(0.04,0.027));
+			list.push_back(Vector2D(0.033,0.027));
+			list.push_back(Vector2D(0.033,0.008));
+			list.push_back(Vector2D(0.016,0.008));
+			list.push_back(Vector2D(0.016,0.027));
+			list.push_back(Vector2D(0.009,0.027));
+			list.push_back(Vector2D(0.009,0.008));
+			list.push_back(Vector2D(0,0.008));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,233,0);
-			auxPrism->setHeight(0.2);
-			auxPrism->setRelativePosition(Vector3D(0.38,-0.1,0.03));
+			auxPrism->setColor(0.8,0.6,0);
+			auxPrism->setHeight(0.02);
+			auxPrism->setRelativePosition(Vector3D(0.038,-0.01,0.003));
 			auxPrism->setRelativeOrientation(0,-PI/2,-PI/2);
 			
 			(*link)+=auxPrism;
@@ -277,69 +279,69 @@ EUITIbotSim::EUITIbotSim()
 			// PRISMA IRREGULAR CENTRO ARRIBA(Pris_Cen_Ar)
 			auxPrism=new PrismaticPart;
 			list.push_back(Vector2D(0,0));
-			list.push_back(Vector2D(0.49,0));
-			list.push_back(Vector2D(0.49,0.08));
-			list.push_back(Vector2D(0,0.08));
+			list.push_back(Vector2D(0.049,0));
+			list.push_back(Vector2D(0.049,0.008));
+			list.push_back(Vector2D(0,0.008));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,233,0);
-			auxPrism->setHeight(0.2);
-			auxPrism->setRelativePosition(Vector3D(0.64,-0.1,0.03));
+			auxPrism->setColor(0.8,0.6,0);
+			auxPrism->setHeight(0.02);
+			auxPrism->setRelativePosition(Vector3D(0.064,-0.01,0.003));
 			auxPrism->setRelativeOrientation(0,-PI/2,-PI/2);
 
 			(*link)+=auxPrism;
 
 			// CILINDRO DERECHO ABAJO(Cil_Ab_Der)
-			auxCyl=new CylindricalPart(0.03,0.175);//Altura y radio
-			auxCyl->setColor(255,233,0);
-			auxCyl->setRelativePosition(Vector3D(0,0,0.52));
+			auxCyl=new CylindricalPart(0.003,0.0175);//Altura y radio
+			auxCyl->setColor(0.8,0.6,0);
+			auxCyl->setRelativePosition(Vector3D(0,0,0.052));
 			(*link)+=auxCyl;
 
 			// PRISMA IRREGULAR DERECHA(Pris_Der)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.13,0));
-			list.push_back(Vector2D(0.13,0));
-			list.push_back(Vector2D(0.13,1.1));
-			list.push_back(Vector2D(-0.13,1.1));
+			list.push_back(Vector2D(-0.013,0));
+			list.push_back(Vector2D(0.013,0));
+			list.push_back(Vector2D(0.013,0.11));
+			list.push_back(Vector2D(-0.013,0.11));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,233,0);
-			auxPrism->setHeight(0.03);
-			auxPrism->setRelativePosition(Vector3D(0,0,0.52));
+			auxPrism->setColor(0.8,0.6,0);
+			auxPrism->setHeight(0.003);
+			auxPrism->setRelativePosition(Vector3D(0,0,0.052));
 			auxPrism->setRelativeOrientation(Z_AXIS,-PI/2);
 			(*link)+=auxPrism;
 			
 
 			// CILINDRO DERECHO ARRIBA(Cil_Ar_Der)
-			auxCyl=new CylindricalPart(0.03,0.175);//Altura y radio
-			auxCyl->setColor(255,233,0);
-			auxCyl->setRelativePosition(Vector3D(1.1,0,0.52));
+			auxCyl=new CylindricalPart(0.003,0.0175);//Altura y radio
+			auxCyl->setColor(0.8,0.6,0);
+			auxCyl->setRelativePosition(Vector3D(0.11,0,0.052));
 			(*link)+=auxCyl;
 
 			// PRISMA IRREGULAR REFUERZO DERECHA(Pris_Ref_Der)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.4,0));
-			list.push_back(Vector2D(0.4,0));
-			list.push_back(Vector2D(0.315,0.04));
-			list.push_back(Vector2D(-0.315,0.04));
+			list.push_back(Vector2D(-0.04,0));
+			list.push_back(Vector2D(0.04,0));
+			list.push_back(Vector2D(0.0315,0.004));
+			list.push_back(Vector2D(-0.0315,0.004));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,233,0);
-			auxPrism->setHeight(0.26);
-			auxPrism->setRelativePosition(Vector3D(0.55,0.13,0.55));
+			auxPrism->setColor(0.8,0.6,0);
+			auxPrism->setHeight(0.026);
+			auxPrism->setRelativePosition(Vector3D(0.055,0.013,0.055));
 			auxPrism->setRelativeOrientation(X_AXIS,PI/2);
 			(*link)+=auxPrism;
 
 			//CILINDRO SERVO PEQUEÑO(Servo_Peq)
-			auxCyl=new CylindricalPart(0.07,0.10);//Altura y radio
+			auxCyl=new CylindricalPart(0.007,0.010);//Altura y radio
 			auxCyl->setColor(0,0,0);
-			auxCyl->setRelativePosition(Vector3D(0,0,0.56));
+			auxCyl->setRelativePosition(Vector3D(0,0,0.056));
 			(*link)+=auxCyl;
 
 			//CILINDRO SERVO GRANDE(Servo_Gran)
-			auxCyl=new CylindricalPart(0.03,0.175);//Altura y radio
+			auxCyl=new CylindricalPart(0.003,0.0175);//Altura y radio
 			auxCyl->setColor(0,0,0);
-			auxCyl->setRelativePosition(Vector3D(0,0,0.5));
+			auxCyl->setRelativePosition(Vector3D(0,0,0.05));
 			(*link)+=auxCyl;
 
 			// AÑADIMOS AL VECTOR LINKS
@@ -354,8 +356,8 @@ EUITIbotSim::EUITIbotSim()
 
 			//JOINT[2] = ARTICULACION 3 ROTACIONAL 
 			auxJoint=new SimpleJoint(25*PI/36 , -25*PI/36,true,0,Z_AXIS,false);
-			auxJoint->setRelativePosition(Vector3D(1.1,0,0));//Desplazamiento a2
-			auxJoint->setRelativeOrientation(0,0,0);
+			auxJoint->setRelativePosition(Vector3D(0,-0.108,0));//Desplazamiento a2
+			auxJoint->setRelativeOrientation(0,0,-PI/2);
 			auxJoint->LinkTo(joints[1]);
 			auxJoint->setValue(q_init[2]);
 			joints.push_back(auxJoint);
@@ -367,164 +369,165 @@ EUITIbotSim::EUITIbotSim()
 			//NUEVO GRUPO DE PIEZAS
 			link=new ComposedEntity;
 			link->setName("Link 3");
-
+			link->setRelativePosition(Vector3D(0.001,0,-0.022));//Desplazamiento a2
+			link->setRelativeOrientation(0,0,0);
 //******************************************************************* //
 // LA ARTICULACION 3 ESTA COMPUESTA POR 1 CILINDRO Y 6 PRISMAS IRREG. //
 //******************************************************************* //
 
 			// PRISMA IRREGULAR CENTRO ARRIBA(Pris_Cen_Ar)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.16,0));
-			list.push_back(Vector2D(0.16,0));
-			list.push_back(Vector2D(0.16,0.065));
-			list.push_back(Vector2D(-0.16,0.065));
+			list.push_back(Vector2D(-0.016,0));
+			list.push_back(Vector2D(0.016,0));
+			list.push_back(Vector2D(0.016,0.0065));
+			list.push_back(Vector2D(-0.016,0.0065));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,0,0);
-			auxPrism->setHeight(0.2);
+			auxPrism->setColor(0.7,0,0);
+			auxPrism->setHeight(0.02);
 			auxPrism->setRelativeOrientation(0,PI/2, -PI/2);
-			auxPrism->setRelativePosition(Vector3D(0.56,0.1,0.22));
+			auxPrism->setRelativePosition(Vector3D(0.056,0.01,0.022));
 			(*link)+=auxPrism;
 
 			//CILINDRO(Cilindro_Rojo)
-			auxCyl=new CylindricalPart(0.03,0.175);//Altura y radio
-			auxCyl->setColor(255,0,0);
-			auxCyl->setRelativePosition(Vector3D(0,0,0.38));
+			auxCyl=new CylindricalPart(0.003,0.0175);//Altura y radio
+			auxCyl->setColor(0.7,0,0);
+			auxCyl->setRelativePosition(Vector3D(0,0,0.038));
 			(*link)+=auxCyl;
 
 			// PRISMA IRREGULAR DERECHA(Pris_Der)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.125,0));
-			list.push_back(Vector2D(0.125,0));
-			list.push_back(Vector2D(0.125,0.97));
-			list.push_back(Vector2D(-0.125,0.97));
+			list.push_back(Vector2D(-0.0125,0));
+			list.push_back(Vector2D(0.0125,0));
+			list.push_back(Vector2D(0.0125,0.097));
+			list.push_back(Vector2D(-0.0125,0.097));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,0,0);
-			auxPrism->setHeight(0.03);
+			auxPrism->setColor(0.7,0,0);
+			auxPrism->setHeight(0.003);
 			auxPrism->setRelativeOrientation(Z_AXIS,-PI/2);
-			auxPrism->setRelativePosition(Vector3D(-0.01,0,0.38));
+			auxPrism->setRelativePosition(Vector3D(-0.001,0,0.038));
 			(*link)+=auxPrism;
 
 			// PRISMA IRREGULAR IZQUIERDA(Pris_Izq)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.155,0.18));
-			list.push_back(Vector2D(0.155,-0.18));
-			list.push_back(Vector2D(0.155,0.32));
-			list.push_back(Vector2D(0.125,0.38));
-			list.push_back(Vector2D(0.125,0.96));
-			list.push_back(Vector2D(-0.125,0.96));
-			list.push_back(Vector2D(-0.125,0.38));
-			list.push_back(Vector2D(-0.155,0.32));
+			list.push_back(Vector2D(-0.0155,0.018));
+			list.push_back(Vector2D(0.0155,-0.018));
+			list.push_back(Vector2D(0.0155,0.032));
+			list.push_back(Vector2D(0.0125,0.038));
+			list.push_back(Vector2D(0.0125,0.096));
+			list.push_back(Vector2D(-0.0125,0.096));
+			list.push_back(Vector2D(-0.0125,0.038));
+			list.push_back(Vector2D(-0.0155,0.032));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,0,0);
-			auxPrism->setHeight(0.06);
+			auxPrism->setColor(0.7,0,0);
+			auxPrism->setHeight(0.006);
 			auxPrism->setRelativeOrientation(Z_AXIS,-PI/2);
 			auxPrism->setRelativePosition(Vector3D(0,0,0));
 			(*link)+=auxPrism;
 
 			// PRISMA IRREGULAR CENTRO ABAJO(Pris_Cen_Ab)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.16,0));
-			list.push_back(Vector2D(0.16,0));
-			list.push_back(Vector2D(0.16,0.065));
-			list.push_back(Vector2D(0.1,0.065));
-			list.push_back(Vector2D(0.1,0.18));
-			list.push_back(Vector2D(0.045,0.18));
-			list.push_back(Vector2D(0.045,0.065));
-			list.push_back(Vector2D(-0.045,0.065));
-			list.push_back(Vector2D(-0.045,0.18));
-			list.push_back(Vector2D(-0.1,0.18));
-			list.push_back(Vector2D(-0.1,0.065));
-			list.push_back(Vector2D(-0.16,0.065));
+			list.push_back(Vector2D(-0.016,0));
+			list.push_back(Vector2D(0.016,0));
+			list.push_back(Vector2D(0.016,0.0065));
+			list.push_back(Vector2D(0.01,0.0065));
+			list.push_back(Vector2D(0.01,0.018));
+			list.push_back(Vector2D(0.0045,0.018));
+			list.push_back(Vector2D(0.0045,0.0065));
+			list.push_back(Vector2D(-0.0045,0.0065));
+			list.push_back(Vector2D(-0.0045,0.018));
+			list.push_back(Vector2D(-0.01,0.018));
+			list.push_back(Vector2D(-0.01,0.0065));
+			list.push_back(Vector2D(-0.016,0.0065));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,0,0);
-			auxPrism->setHeight(0.2);
+			auxPrism->setColor(0.7,0,0);
+			auxPrism->setHeight(0.02);
 			auxPrism->setRelativeOrientation(0,PI/2,-PI/2);
 			
-			auxPrism->setRelativePosition(Vector3D(0.38,0.1,0.22));
+			auxPrism->setRelativePosition(Vector3D(0.038,0.01,0.022));
 			(*link)+=auxPrism;
 
 			// PRISMA IRREGULAR REFUERZO DERECHA(Pris_Ref_Der)
 			auxPrism=new PrismaticPart;
 			list.push_back(Vector2D(0,0));
-			list.push_back(Vector2D(0.04,0.045));
-			list.push_back(Vector2D(0.04,0.81));
-			list.push_back(Vector2D(0,0.81));
+			list.push_back(Vector2D(0.004,0.0045));
+			list.push_back(Vector2D(0.004,0.081));
+			list.push_back(Vector2D(0,0.081));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,0,0);
-			auxPrism->setHeight(0.2);
+			auxPrism->setColor(0.7,0,0);
+			auxPrism->setHeight(0.02);
 			auxPrism->setRelativeOrientation(0,-PI/2,-PI/2);
 	
-			auxPrism->setRelativePosition(Vector3D(0.15,-0.13,0.41));
+			auxPrism->setRelativePosition(Vector3D(0.015,-0.013,0.041));
 			(*link)+=auxPrism;
 
 			// PRISMA IRREGULAR ARRIBA(Pris_Ar)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.16,0));
-			list.push_back(Vector2D(-0.115,0));
-			list.push_back(Vector2D(-0.115,0.05));
-			list.push_back(Vector2D(0.115,0.05));
-			list.push_back(Vector2D(0.155,0));
-			list.push_back(Vector2D(0.16,0));
-			list.push_back(Vector2D(0.16,0.11));
-			list.push_back(Vector2D(-0.16,0.11));
+			list.push_back(Vector2D(-0.016,0));
+			list.push_back(Vector2D(-0.0115,0));
+			list.push_back(Vector2D(-0.0115,0.005));
+			list.push_back(Vector2D(0.0115,0.005));
+			list.push_back(Vector2D(0.0155,0));
+			list.push_back(Vector2D(0.016,0));
+			list.push_back(Vector2D(0.016,0.011));
+			list.push_back(Vector2D(-0.016,0.011));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,0,0);
-			auxPrism->setHeight(0.25);
+			auxPrism->setColor(0.7,0,0);
+			auxPrism->setHeight(0.025);
 			auxPrism->setRelativeOrientation(-PI/2, -PI/2,0);
 			
-			auxPrism->setRelativePosition(Vector3D(0.85,-0.13,0.22));
+			auxPrism->setRelativePosition(Vector3D(0.085,-0.013,0.022));
 			(*link)+=auxPrism;
 
 			//CILINDRO SERVO GRANDE(Servo_Gran)
-			auxCyl=new CylindricalPart(0.03,0.175);//Altura y radio
+			auxCyl=new CylindricalPart(0.003,0.015);//Altura y radio
 			auxCyl->setColor(0,0,0);
-			auxCyl->setRelativePosition(Vector3D(0,0,-0.08));
+			auxCyl->setRelativePosition(Vector3D(0,0,-0.008));
 			(*link)+=auxCyl;
 
 			//CILINDRO SERVO PEQUEÑO(Servo_Peq)
-			auxCyl=new CylindricalPart(0.06,0.175);//Altura y radio
+			auxCyl=new CylindricalPart(0.006,0.015);//Altura y radio
 			auxCyl->setColor(0,0,0);
-			auxCyl->setRelativePosition(Vector3D(0,0,-0.06));
+			auxCyl->setRelativePosition(Vector3D(0,0,-0.006));
 			(*link)+=auxCyl;
 
 			// SERVO4(Servo4)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.095,-0.2));
-			list.push_back(Vector2D(0.095,-0.2));
-			list.push_back(Vector2D(0.095,0.2));
-			list.push_back(Vector2D(-0.095,0.2));
+			list.push_back(Vector2D(-0.0095,-0.02));
+			list.push_back(Vector2D(0.0095,-0.02));
+			list.push_back(Vector2D(0.0095,0.02));
+			list.push_back(Vector2D(-0.0095,0.02));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
 			auxPrism->setColor(0,0,0);
-			auxPrism->setHeight(0.35);
-			auxPrism->setRelativePosition(Vector3D(0.07,0,-0.01));
+			auxPrism->setHeight(0.035);
+			auxPrism->setRelativePosition(Vector3D(0.007,0,0));
 			auxPrism->setRelativeOrientation(Z_AXIS,-PI/2);
 			(*link)+=auxPrism;
 
 			// SERVO5(Servo5)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.055,-0.11));
-			list.push_back(Vector2D(0.055,-0.11));
-			list.push_back(Vector2D(0.055,0.11));
-			list.push_back(Vector2D(-0.055,0.11));
+			list.push_back(Vector2D(-0.0055,-0.011));
+			list.push_back(Vector2D(0.0055,-0.011));
+			list.push_back(Vector2D(0.0055,0.011));
+			list.push_back(Vector2D(-0.0055,0.011));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
 			auxPrism->setColor(0,0,0);
-			auxPrism->setHeight(0.25);
-			auxPrism->setRelativePosition(Vector3D(0.67,0,0.23));
+			auxPrism->setHeight(0.025);
+			auxPrism->setRelativePosition(Vector3D(0.067,0,0.023));
 			auxPrism->setRelativeOrientation(Y_AXIS,PI/2);
 			(*link)+=auxPrism;
 
 			//CILINDRO REFUERZO SERVO(Cil_Ref)
-			auxCyl=new CylindricalPart(0.06,0.08);//Altura y radio
+			auxCyl=new CylindricalPart(0.006,0.008);//Altura y radio
 			auxCyl->setColor(0,0,0);
-			auxCyl->setRelativePosition(Vector3D(0.9,-0.15,0.22));
+			auxCyl->setRelativePosition(Vector3D(0.09,-0.015,0.022));
 			auxCyl->setRelativeOrientation(Y_AXIS,PI/2);
 			(*link)+=auxCyl;
 
@@ -541,8 +544,8 @@ EUITIbotSim::EUITIbotSim()
 
 			//JOINT[3] = ARTICULACION 4 ROTACIONAL 
 			auxJoint=new SimpleJoint(7*PI/9 , -7*PI/9,true,0,Z_AXIS,0);
-			auxJoint->setRelativePosition(Vector3D(1.0,0.0,0.2));
-			auxJoint->setRelativeOrientation(Y_AXIS,PI/2);
+			//auxJoint->setRelativePosition(Vector3D(0,0,0));
+			auxJoint->setRelativeOrientation(PI/2, 0 , PI/2);
 			auxJoint->LinkTo(joints[2]);
 			auxJoint->setValue(q_init[3]);
 			joints.push_back(auxJoint);
@@ -553,96 +556,97 @@ EUITIbotSim::EUITIbotSim()
 			//NUEVO GRUPO DE PIEZAS
 			link=new ComposedEntity;
 			link->setName("Link 4");
-
+			link->setRelativePosition(Vector3D(-0.001,0,0.102));
+			link->setRelativeOrientation(0, 0 , -PI/2);
 			//******************************************************************** //
 			// LA ARTICULACION 4 ESTA COMPUESTA POR 2 CILINDROS Y 2 PRISMAS IRREG. //
 			//******************************************************************** //
 
 			// PRISMA IRREGULAR(Prisma)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.125,0));
-			list.push_back(Vector2D(0.2,0));
-			list.push_back(Vector2D(0.26,0.03));
-			list.push_back(Vector2D(0.29,0.09));
-			list.push_back(Vector2D(0.29,0.23));
-			list.push_back(Vector2D(0.26,0.275));
-			list.push_back(Vector2D(0.23,0.275));
-			list.push_back(Vector2D(0.23,0.11));
-			list.push_back(Vector2D(0.2,0.11));
-			list.push_back(Vector2D(0.2,0.06));
-			list.push_back(Vector2D(0.09,0.06));
-			list.push_back(Vector2D(0.09,0.03));
-			list.push_back(Vector2D(-0.09,0.03));
-			list.push_back(Vector2D(-0.09,0.06));
-			list.push_back(Vector2D(-0.125,0.06));
-			list.push_back(Vector2D(-0.125,0.11));
-			list.push_back(Vector2D(-0.155,0.11));
-			list.push_back(Vector2D(-0.155,0.13));
-			list.push_back(Vector2D(-0.185,0.13));
-			list.push_back(Vector2D(-0.21,0.09));
-			list.push_back(Vector2D(-0.185,0.03));
+			list.push_back(Vector2D(-0.0125,0));
+			list.push_back(Vector2D(0.02,0));
+			list.push_back(Vector2D(0.026,0.003));
+			list.push_back(Vector2D(0.029,0.009));
+			list.push_back(Vector2D(0.029,0.023));
+			list.push_back(Vector2D(0.026,0.0275));
+			list.push_back(Vector2D(0.023,0.0275));
+			list.push_back(Vector2D(0.023,0.011));
+			list.push_back(Vector2D(0.02,0.011));
+			list.push_back(Vector2D(0.02,0.006));
+			list.push_back(Vector2D(0.009,0.006));
+			list.push_back(Vector2D(0.009,0.003));
+			list.push_back(Vector2D(-0.009,0.003));
+			list.push_back(Vector2D(-0.009,0.006));
+			list.push_back(Vector2D(-0.0125,0.006));
+			list.push_back(Vector2D(-0.0125,0.011));
+			list.push_back(Vector2D(-0.0155,0.011));
+			list.push_back(Vector2D(-0.0155,0.013));
+			list.push_back(Vector2D(-0.0185,0.013));
+			list.push_back(Vector2D(-0.021,0.009));
+			list.push_back(Vector2D(-0.0185,0.003));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,233,0);
-			auxPrism->setHeight(0.25);
+			auxPrism->setColor(0.8,0.6,0);
+			auxPrism->setHeight(0.025);
 			auxPrism->setRelativeOrientation(PI/2, 0 , -PI);
 			
-			auxPrism->setRelativePosition(Vector3D(0,-0.1,0));
+			auxPrism->setRelativePosition(Vector3D(0,-0.01,0));
 			(*link)+=auxPrism;
 
 			// PRISMA IRREGULAR IZQUIERDA(Pris_Izq)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.045,0));
-			list.push_back(Vector2D(0.045,0));
-			list.push_back(Vector2D(0.045,0.125));
-			list.push_back(Vector2D(-0.045,0.125));
+			list.push_back(Vector2D(-0.0045,0));
+			list.push_back(Vector2D(0.0045,0));
+			list.push_back(Vector2D(0.0045,0.0125));
+			list.push_back(Vector2D(-0.0045,0.0125));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,233,0);
-			auxPrism->setHeight(0.03);
+			auxPrism->setColor(0.8,0.6,0);
+			auxPrism->setHeight(0.003);
 			auxPrism->setRelativeOrientation(Y_AXIS,PI/2);
-			auxPrism->setRelativePosition(Vector3D(0.16,-0.04,0.16));
+			auxPrism->setRelativePosition(Vector3D(0.016,-0.004,0.016));
 			(*link)+=auxPrism;
 
 			//CILINDRO IZQUIERDA(Cil_Izq)
-			auxCyl=new CylindricalPart(0.03,0.065);
-			auxCyl->setColor(255,233,0);
-			auxCyl->setRelativePosition(Vector3D(0.16,0.2,0.2));
+			auxCyl=new CylindricalPart(0.003,0.0065);
+			auxCyl->setColor(0.8,0.6,0);
+			auxCyl->setRelativePosition(Vector3D(0.016,0.02,0.02));
 			auxCyl->setRelativeOrientation(0,PI/2,0);
 			(*link)+=auxCyl;
 
 			//CILINDRO DERECHA(Cil_Der)
-			auxCyl=new CylindricalPart(0.03,0.175);
-			auxCyl->setColor(255,233,0);
-			auxCyl->setRelativePosition(Vector3D(-0.26,0.02,0.27));
+			auxCyl=new CylindricalPart(0.003,0.0175);
+			auxCyl->setColor(0.8,0.6,0);
+			auxCyl->setRelativePosition(Vector3D(-0.026,0.002,0.027));
 			auxCyl->setRelativeOrientation(0,PI/2,0);
 			(*link)+=auxCyl;
 
 
 			//CILINDRO SERVO ARRIBA(Servo_Ar)
-			auxCyl=new CylindricalPart(0.09,0.05);//Altura y radio
+			auxCyl=new CylindricalPart(0.009,0.005);//Altura y radio
 			auxCyl->setColor(0,0,0);
-			auxCyl->setRelativePosition(Vector3D(-0.25,0.02,0.27));
+			auxCyl->setRelativePosition(Vector3D(-0.025,0.002,0.027));
 			auxCyl->setRelativeOrientation(Y_AXIS,PI/2);
 			(*link)+=auxCyl;
 
 			//CILINDRO SERVO ABAJO(Servo_Ab)
-			auxCyl=new CylindricalPart(0.05,0.05);//Altura y radio
+			auxCyl=new CylindricalPart(0.005,0.005);//Altura y radio
 			auxCyl->setColor(0,0,0);
-			auxCyl->setRelativePosition(Vector3D(0,0,-0.04));
+			auxCyl->setRelativePosition(Vector3D(0,0,-0.004));
 			(*link)+=auxCyl;
 
 			// SERVO6(Servo6)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.055,-0.11));
-			list.push_back(Vector2D(0.055,-0.11));
-			list.push_back(Vector2D(0.055,0.11));
-			list.push_back(Vector2D(-0.055,0.11));
+			list.push_back(Vector2D(-0.0055,-0.011));
+			list.push_back(Vector2D(0.0055,-0.011));
+			list.push_back(Vector2D(0.0055,0.011));
+			list.push_back(Vector2D(-0.0055,0.011));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
 			auxPrism->setColor(0,0,0);
-			auxPrism->setHeight(0.25);
-			auxPrism->setRelativePosition(Vector3D(-0.24,0.03,0.22));
+			auxPrism->setHeight(0.025);
+			auxPrism->setRelativePosition(Vector3D(-0.024,0.003,0.022));
 			auxPrism->setRelativeOrientation(-PI/2,0,PI/2);
 			
 			(*link)+=auxPrism;
@@ -661,8 +665,8 @@ EUITIbotSim::EUITIbotSim()
 
 			//JOINT[4] = ARTICULACION 5 ROTACIONAL 
 			auxJoint=new SimpleJoint(5*PI/9,-5*PI/9,true,0,Z_AXIS,false);
-			auxJoint->setRelativePosition(Vector3D(-0.2,0,0.3));
-			auxJoint->setRelativeOrientation(0,PI/2,0);
+			auxJoint->setRelativePosition(Vector3D(0,0,0.1284));
+			auxJoint->setRelativeOrientation(-PI/2,0,0);
 			auxJoint->LinkTo(joints[3]);
 			auxJoint->setValue(q_init[4]);
 			joints.push_back(auxJoint);
@@ -673,70 +677,71 @@ EUITIbotSim::EUITIbotSim()
 			//NUEVO GRUPO DE PIEZAS
 			link=new ComposedEntity;
 			link->setName("Link 5");
-
+			link->setRelativePosition(Vector3D(0,0,-0.02));
+			link->setRelativeOrientation(0,0,0);
 			//******************************************************************* //
 			// LA ARTICULACION 5 ESTA COMPUESTA POR 3 CILINDROS Y 1 PRISMA IRREG. //
 			//******************************************************************* //
 
 			// PRISMA IRREGULAR(Prisma)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.17,0));
-			list.push_back(Vector2D(0.17,0));
-			list.push_back(Vector2D(0.21,0.02));
-			list.push_back(Vector2D(0.23,0.06));
-			list.push_back(Vector2D(0.23,0.1));
-			list.push_back(Vector2D(0.19,0.19));
-			list.push_back(Vector2D(0.17,0.19));
-			list.push_back(Vector2D(0.17,0.1));
-			list.push_back(Vector2D(0.14,0.1));
-			list.push_back(Vector2D(0.14,0.06));
-			list.push_back(Vector2D(-0.14,0.06));
-			list.push_back(Vector2D(-0.14,0.1));
-			list.push_back(Vector2D(-0.17,0.1));
-			list.push_back(Vector2D(-0.07,0.19));
-			list.push_back(Vector2D(-0.19,0.19));
-			list.push_back(Vector2D(-0.23,0.1));
-			list.push_back(Vector2D(-0.23,0.06));
-			list.push_back(Vector2D(-0.21,0.02));
+			list.push_back(Vector2D(-0.017,0));
+			list.push_back(Vector2D(0.017,0));
+			list.push_back(Vector2D(0.021,0.002));
+			list.push_back(Vector2D(0.023,0.006));
+			list.push_back(Vector2D(0.023,0.01));
+			list.push_back(Vector2D(0.019,0.019));
+			list.push_back(Vector2D(0.017,0.019));
+			list.push_back(Vector2D(0.017,0.01));
+			list.push_back(Vector2D(0.014,0.01));
+			list.push_back(Vector2D(0.014,0.006));
+			list.push_back(Vector2D(-0.014,0.006));
+			list.push_back(Vector2D(-0.014,0.01));
+			list.push_back(Vector2D(-0.017,0.01));
+			list.push_back(Vector2D(-0.007,0.019));
+			list.push_back(Vector2D(-0.019,0.019));
+			list.push_back(Vector2D(-0.023,0.01));
+			list.push_back(Vector2D(-0.023,0.006));
+			list.push_back(Vector2D(-0.021,0.002));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
-			auxPrism->setColor(255,0,0);
-			auxPrism->setHeight(0.25);
-			auxPrism->setRelativeOrientation(PI/2, -PI/2, 0);
+			auxPrism->setColor(0.7,0,0);
+			auxPrism->setHeight(0.025);
+			auxPrism->setRelativeOrientation(PI/2, PI/2, PI/2);
 			
-			auxPrism->setRelativePosition(Vector3D(-0.19,-0.12,0.19));
+			auxPrism->setRelativePosition(Vector3D(-0.012,-0.019,0.019));
 			(*link)+=auxPrism;
 
 			// CILINDRO DERECHA(Cil_Der)
-			auxCyl=new CylindricalPart(0.02,0.12);
-			auxCyl->setColor(233,0,0);
+			auxCyl=new CylindricalPart(0.002,0.012);
+			auxCyl->setColor(0.7,0,0);
 			(*link)+=auxCyl;
 
 			//CILINDRO IZQUIERDA(Cil_Izq)
-			auxCyl=new CylindricalPart(0.02,0.12);
-			auxCyl->setColor(233,0,0);
-			auxCyl->setRelativePosition(Vector3D(0,0,0.36));
+			auxCyl=new CylindricalPart(0.002,0.012);
+			auxCyl->setColor(0.7,0,0); 
+			auxCyl->setRelativePosition(Vector3D(0,0,0.036));
 			(*link)+=auxCyl;
 
 
 			//CILINDRO REFUERZO(Cil_Ref)
-			auxCyl=new CylindricalPart(0.06,0.08);
-			auxCyl->setColor(233,0,0);
-			auxCyl->setRelativePosition(Vector3D(-0.13,0.15,0.20));
-			auxCyl->setRelativeOrientation(Y_AXIS,-PI/2);
+			auxCyl=new CylindricalPart(0.006,0.008);
+			auxCyl->setColor(0.7,0,0);
+			auxCyl->setRelativePosition(Vector3D(0,-0.019,0.020));
+			auxCyl->setRelativeOrientation(0,PI/2,-PI/2);
 			(*link)+=auxCyl;
 
 			// SERVO7(Servo7)
 			auxPrism=new PrismaticPart;
-			list.push_back(Vector2D(-0.055,-0.11));
-			list.push_back(Vector2D(0.055,-0.11));
-			list.push_back(Vector2D(0.055,0.11));
-			list.push_back(Vector2D(-0.055,0.11));
+			list.push_back(Vector2D(-0.0055,-0.011));
+			list.push_back(Vector2D(0.0055,-0.011));
+			list.push_back(Vector2D(0.0055,0.011));
+			list.push_back(Vector2D(-0.0055,0.011));
 			auxPrism->setPolygonalBase(list);
 			list.clear();
 			auxPrism->setColor(0,0,0);
-			auxPrism->setHeight(0.25);
-			auxPrism->setRelativePosition(Vector3D(-0.15,0.05,0.2));
+			auxPrism->setHeight(0.025);
+			auxPrism->setRelativePosition(Vector3D(0.015,0.005,0.019));
 			auxPrism->setRelativeOrientation(Y_AXIS,-PI/2);
 			(*link)+=auxPrism;
 
@@ -755,6 +760,7 @@ EUITIbotSim::EUITIbotSim()
 			//JOINT[5] = ARTICULACION 6 ROTACIONAL 
 			auxJoint=new SimpleJoint(PI,-PI,true,0,Z_AXIS,false);
 			auxJoint->setRelativePosition(Vector3D(0,0,0));
+			auxJoint->setRelativeOrientation(PI/2,0,0);
 			auxJoint->LinkTo(joints[4]);
 			auxJoint->setValue(q_init[5]);
 			joints.push_back(auxJoint);
@@ -770,7 +776,7 @@ EUITIbotSim::EUITIbotSim()
 			// LA ARTICULACION 6 ESTA COMPUESTA POR UN CILINDRO //
 			//************************************************* //
 			// CILINDRO:
-			auxCyl=new CylindricalPart(0.06,0.03);//Altura y radio
+			auxCyl=new CylindricalPart(0.006,0.003);//Altura y radio
 			auxCyl->setColor(0,0,0);
 			auxCyl->setRelativePosition(Vector3D(0,0,0));
 			(*link)+=auxCyl;
@@ -784,7 +790,7 @@ EUITIbotSim::EUITIbotSim()
 			//Tcp
 			tcp=new Tcp();
 			tcp->setName("Tcp");
-			tcp->setRelativePosition(Vector3D(0,0,0.06));
+			tcp->setRelativePosition(Vector3D(0,0,0.103));
 			tcp->LinkTo(joints[5]);
 			tcp->setDrawReferenceSystem(true);
 

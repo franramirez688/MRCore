@@ -121,7 +121,7 @@ void GLScene::init()
 	glEnable(GL_COLOR_MATERIAL);
 	
 	glMatrixMode(GL_PROJECTION);
-	gluPerspective( 40.0, ((GLdouble)w)/((GLdouble)h), 1.1, 150);
+	gluPerspective( 40.0, ((GLdouble)w)/((GLdouble)h), 0.1, 150);
 
 }
 void GLScene::Draw() 
@@ -134,7 +134,7 @@ void GLScene::Draw()
 	//Defines the perspective
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective( 40.0, ((GLdouble)w)/((GLdouble)h), 1.1, 150);
+	gluPerspective( 40.0, ((GLdouble)w)/((GLdouble)h), 0.1, 150);
 	
 	//Para definir el punto de vista
 	glMatrixMode(GL_MODELVIEW);	
