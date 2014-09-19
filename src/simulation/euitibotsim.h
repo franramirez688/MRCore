@@ -40,7 +40,6 @@
 #define	INIT_EUITI_BOT			0x80	//	0x1000.0000
 #define	SHOULDERRIGHT	0x01	//	0x0000.0001
 #define ELBOWDOWN		0x02	//	0x0000.0010
-#define	WRISTDOWN		0x04	//	0x0000.0100
 
 namespace mr
 {
@@ -65,8 +64,8 @@ public:
 
 //Return robot configuration
 	virtual bool getConfigurationOf(const vector<double> &_q, unsigned char &_conf);
-	bool configuration(unsigned char _conf, double& _s, double& _e, double& _w);
-	bool configuration(double _s, double _e, double _w,unsigned char &_conf);
+	bool configuration(unsigned char _conf, double& _s, double& _e);
+	bool configuration(double _s, double _e,unsigned char &_conf);
 
 //simulate specific
 	void simulate(double delta_t);
@@ -75,23 +74,8 @@ public:
 	void setFlash();
 	bool getCoordinatesOf(vector<double> &_q);// delete?
 	
-
 protected:
-//Specific inverse methode of Puma 560
 	bool EUITIbotInverseKinematics(Transformation3D t06, vector<double> &_q, unsigned char _conf=0x00);
-
-	//void goTo(vector<double> _q);
-
-	/***
-				Ranges coordiantes:
-				joints[0]	->	360º	->[PI/2 ,		-PI/2]
-				joints[1]	->	250º	->[25*PI/36 , -25*PI/36]  125º / -125º
-				joints[2]	->	250º	->[25*PI/36 , -25*PI/36]
-				joints[3]	->	360º	->[PI/2 ,		-PI/2]
-				joints[4]	->	250º	->[25*PI/36 , -25*PI/36]
-				joints[5]	->	360º	->[PI/2 ,		-PI/2]
-				***/
-
 
 };
 
