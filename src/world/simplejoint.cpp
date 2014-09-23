@@ -110,8 +110,7 @@ void SimpleJoint::readFromXML(XMLElement* parent)
 	{
 		string cad;
 		cad=XMLAux::GetValueCadena(parent->FindVariableZ("prismatic"));
-
-		if (cad=="true" || cad!="0")
+		if ((cad=="true")||(cad=="1"))
 			prismatic=true;
 		else 
 			prismatic=false;

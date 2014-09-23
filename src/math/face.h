@@ -129,6 +129,7 @@ public:
 
 	int getNumVertex(){return (int)(vertex.size());}
 	Vector3D getAbsoluteVertex(int i){return (absVertex[i]);}
+	vector<Vector3D> getVertex(){return vertex;}
 	
 	static bool enableAlfa;
 	static void setDefaultColor(float _r, float _g,float _b,float _alfa){defaultR=_r;defaultG=_g;defaultB=_b;defaultAlfa=_alfa;}

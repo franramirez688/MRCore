@@ -51,16 +51,281 @@ void ComposedEntity::readFromStream(Stream& stream)
 }
 
 void ComposedEntity::writeToXML(XMLElement* parent)
-{	
-	//XMLElement* compos=new XMLElement(parent,"composedentity");
-	//parent->AddElement(compos);
-	SolidEntity::writeToXML(parent);
-	EntitySet::writeToXML(parent);
+{
+	int i,num=(int)objects.size();
+	int internalRelations=0;
+	int tcpRelations=0;
+
+	XMLfile file(parent);
+
+
+   for(i=0;i<num;i++)
+   {
+		file<<objects[i];  //save all the objects in XML_FILE
+		file<<i; //put one ID in every xml objects
+	}
+	vector<XMLElement*> pObj=file.getXMLElementsObjects();
+
+
+	 //compruebo si su parent es otro objeto de la colección
+    for(i=0;i<num;i++)
+	{
+		 if(objects[i]->getLinkedTo())
+		 {
+			 if(this==objects[i]->getLinkedTo()->getOwner())
+			 {
+					int a=getIndexOf(objects[i]->getLinkedTo());
+					
+					string _name=XMLAux::GetValueCadena(pObj[a]->FindVariableZ("name",true));
+					XMLVariable* linkedTo;
+					bool repeatedOrEmptyName=false;
+					//linked one object with another one (i,a)
+					if (_name.empty())
+						repeatedOrEmptyName=true;
+
+					else
+					{
+						for (int j=0;j<num;j++)
+						{
+							if (_name==XMLAux::GetValueCadena(pObj[j]->FindVariableZ("name")) && a!=j)
+								repeatedOrEmptyName=true;		
+								
+						}
+					}
+										
+					if (repeatedOrEmptyName)
+						linkedTo= new XMLVariable ("linkTo",XMLAux::setLinkTo("noName",a).c_str());
+						 
+					else							
+						linkedTo= new XMLVariable ("linkTo",XMLAux::setLinkTo(_name,a).c_str());
+					
+
+					pObj[i]->AddVariable(linkedTo);
+						
+			   }
+			}
+		}
+
+		for(i=0;i<num;i++){
+		if(objects[i]->getLinkedTo())
+		{
+				Tcp *check=dynamic_cast<Tcp *>(objects[i]->getLinkedTo());
+				if(check){
+					 ComposedEntity *aux=dynamic_cast<ComposedEntity *>(check->getOwner());
+					 if(aux){ 
+						 if(this==aux->getOwner()){
+
+							int a=getIndexOf(aux);
+							int b=aux->getTcpIndex(check);
+							
+
+							string _name=XMLAux::GetValueCadena(pObj[a]->FindVariableZ("name",true));
+							string _nameTcp=string();
+							XMLVariable* linkedToTcp;
+							bool repeatedName=false;
+							if(_name.empty())
+							{
+								stringstream str;
+								str<<"Composed Entity"<<a;
+								_name=str.str();
+								pObj[a]->FindVariableZ("name")->SetValue(_name.c_str());
+							}
+							else 
+							{
+								for (int j=0;j<num;j++)
+								{
+									if (_name==XMLAux::GetValueCadena(pObj[j]->FindVariableZ("name")) && a!=j)
+										repeatedName=true;		
+										
+								}
+							}
+							if (XMLAux::GetNameElement(pObj[a])=="ComposedEntity")
+							{
+								_nameTcp=XMLAux::GetValueCadena(pObj[a]->FindElementZ("Tcp")->FindVariableZ("name",true));
+								if(_nameTcp.empty())
+								{
+									stringstream str;
+									str<<"tcp"<<b;
+									_nameTcp=str.str();
+									pObj[a]->FindElementZ("Tcp")->FindVariableZ("name")->SetValue(_nameTcp.c_str());
+								}
+								if (repeatedName)
+									linkedToTcp= new XMLVariable ("linkToTcp",XMLAux::setLinkToTcp("noName",_nameTcp,b,a).c_str());
+								else
+									linkedToTcp= new XMLVariable ("linkToTcp",XMLAux::setLinkToTcp(_name,_nameTcp,b,a).c_str());
+							}
+							else
+							{
+								if(repeatedName)
+									linkedToTcp= new XMLVariable ("linkToTcp",XMLAux::setLinkToTcpDefault("noName",b,a).c_str());
+								else
+									linkedToTcp= new XMLVariable ("linkToTcp",XMLAux::setLinkToTcpDefault(_name,b,a).c_str());
+
+							}
+							pObj[i]->AddVariable(linkedToTcp);
+						 }
+					 }
+				 }
+		}
+	}
+	SolidEntity::writeToXML(file.getRoot());
 }
+
 void ComposedEntity::readFromXML(XMLElement* parent)
 {
 	SolidEntity::readFromXML(parent);
-	EntitySet::readFromXML(parent);
+
+	int i,num=parent->GetChildrenNum();
+	int numElem=0;
+	XMLElement** pObj=parent->GetChildren();
+	vector<XMLElement*> auxpObj;
+	XMLfile file(parent);
+	objects.clear();
+	for(int i=0;i<num;i++)
+	{
+		if(dynamic_cast<PositionableEntity *>(file.read(pObj[i])))
+		{
+			PositionableEntity * aux=dynamic_cast<PositionableEntity *>(file.read(pObj[i]));
+			addObject(aux);
+			numElem++;
+			auxpObj.push_back(pObj[i]);
+		}
+	}
+	for(i=0;i<numElem;i++)
+	{
+		if(auxpObj[i]->FindVariableZ("linkTo"))
+		{
+			XMLVariable* link=auxpObj[i]->FindVariableZ("linkTo");
+			string type=XMLAux::getTypeConectionLink(link,false);
+			if (type=="conectionId")
+			{
+				int id_linked=link->GetValueInt();
+				for (int j=0;j<numElem;j++)
+				{
+					if (auxpObj[j]->FindVariableZ("id"))
+					{
+						if (id_linked==auxpObj[j]->FindVariableZ("id")->GetValueInt())
+							objects[i]->LinkTo(objects[j]);
+					}
+				}
+			}
+			else if(type=="conectionNames")
+			{
+				string nameLink=XMLAux::GetNameLinkTo(link);
+				for (int j=0;j<numElem;j++)
+				{
+					if (nameLink==XMLAux::GetValueCadena(auxpObj[j]->FindVariableZ("name")))
+							objects[i]->LinkTo(objects[j]);
+				}
+
+			}
+		}
+	}
+
+	for(i=0;i<numElem;i++)
+	{
+		if(auxpObj[i]->FindVariableZ("linkToTcp"))
+		{
+			XMLVariable* linkTcp=auxpObj[i]->FindVariableZ("linkToTcp");
+			string type=XMLAux::getTypeConectionLink(linkTcp);
+
+			if (type=="conectionId")
+			{				
+				int ids[2]={0};
+				XMLAux::GetValueOwnerAndTcp(linkTcp,ids);
+				int id_OwnerTcp=ids[0], id_linkTcp=ids[1];
+
+				if(id_OwnerTcp>=0)
+				{
+					for (int j=0;j<numElem;j++)
+					{
+						if (auxpObj[j]->FindVariableZ("id"))
+						{
+							if (id_OwnerTcp==auxpObj[j]->FindVariableZ("id")->GetValueInt())
+							{
+								ComposedEntity *aux=dynamic_cast<ComposedEntity *>(objects[j]);
+								if(aux)
+								{
+									if (XMLAux::GetNameElement(auxpObj[j])=="ComposedEntity")
+									{
+										int numChildCompos=auxpObj[j]->GetChildrenNum();
+										if (numChildCompos)
+										{
+											XMLElement** childsComposed=auxpObj[j]->GetChildren();
+											int indexTcp=0;
+											for (int z=0;z<numChildCompos;z++)
+											{
+												if (XMLAux::GetNameElement(childsComposed[z])=="Tcp")
+												{
+													if (id_linkTcp==childsComposed[z]->FindVariableZ("id",true)->GetValueInt())
+														objects[i]->LinkTo(aux->getTcp(indexTcp));
+													else if (indexTcp==id_linkTcp)
+														objects[i]->LinkTo(aux->getTcp(indexTcp));
+															
+													indexTcp++;
+
+												}
+											}
+										}
+								}
+								else 
+									objects[i]->LinkTo(aux->getTcp(id_linkTcp));//it's supposed that user knows id_linkTcp=Tcp's index
+
+							}
+						}
+					}
+				}
+			}	
+			else if (type=="conectionNames")
+			{
+				vector<string> names=XMLAux::GetNameOwnerAndTcp(linkTcp);
+				int idTcp=XMLAux::getIndTcp(names[1]);
+				string nameOnlyTcp=XMLAux::getOnlyNameTcp(names[1]);
+				for (int j=0;j<numElem;j++)
+				{
+					if (names[0]==XMLAux::GetValueCadena(auxpObj[j]->FindVariableZ("name")))
+					{
+						ComposedEntity *aux=dynamic_cast<ComposedEntity *>(objects[j]);
+						if(aux)
+						{
+							if (XMLAux::GetNameElement(auxpObj[j])=="ComposedEntity")
+							{
+								int numChildCompos=auxpObj[j]->GetChildrenNum();
+								if(numChildCompos)
+								{
+									XMLElement** childsComposed=auxpObj[j]->GetChildren();
+									int indexTcp=0;
+									for (int z=0;z<numChildCompos;z++)
+									{
+										if (XMLAux::GetNameElement(childsComposed[z])=="Tcp")
+										{
+											if (nameOnlyTcp==XMLAux::GetValueCadena(childsComposed[z]->FindVariableZ("name")) &&
+												idTcp==childsComposed[z]->FindVariableZ("id")->GetValueInt())
+													objects[i]->LinkTo(aux->getTcp(indexTcp));
+												else if (nameOnlyTcp==XMLAux::GetValueCadena(childsComposed[z]->FindVariableZ("name")) &&
+														idTcp==indexTcp)
+													objects[i]->LinkTo(aux->getTcp(indexTcp));											
+												else if(idTcp==childsComposed[z]->FindVariableZ("id")->GetValueInt())
+													objects[i]->LinkTo(aux->getTcp(indexTcp));	
+												else if (idTcp==indexTcp)
+													objects[i]->LinkTo(aux->getTcp(indexTcp));
+
+												indexTcp++;
+										}
+									}
+								}
+							}
+								else 
+									objects[i]->LinkTo(aux->getTcp(idTcp));
+
+							}
+						}
+					}
+
+				}
+			}
+		}
+	}
 }
 
 char* ComposedEntity::CreateXMLText()
