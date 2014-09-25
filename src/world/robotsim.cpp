@@ -54,13 +54,14 @@ void RobotSim::readFromXML(XMLElement* parent)
 {
 	ComposedEntity::readFromXML(parent);
 	int i,num=parent->GetChildrenNum();
+	int objSize=objects.size();
 	XMLElement** pObj=parent->GetChildren();
 	XMLfile file(parent);
-	for(int i=0;i<num;i++)
+	for(int i=0;i<objSize;i++)
 	{
 		if(dynamic_cast<Tcp *> (objects[i])) tcp=dynamic_cast<Tcp *> (objects[i]);
 	}
-	for(int i=0;i<num;i++)
+	for(int i=0;i<objSize;i++)
 	{
 		if(dynamic_cast<Actuator *> (objects[i])) 
 		{
@@ -68,7 +69,7 @@ void RobotSim::readFromXML(XMLElement* parent)
 			actuators.push_back(act);
 		}
 	}
-	for(int i=0;i<num;i++)
+	for(int i=0;i<objSize;i++)
 	{
 		if(dynamic_cast<SimpleJoint *> (objects[i])) 
 		{
@@ -76,7 +77,7 @@ void RobotSim::readFromXML(XMLElement* parent)
 			joints.push_back(joint);
 		}
 	}
-	for(int i=0;i<num;i++)
+	for(int i=0;i<objSize;i++)
 	{
 		if((!dynamic_cast<Actuator *> (objects[i]))&&(!dynamic_cast<SimpleJoint *> (objects[i]))&&(!dynamic_cast<Tcp *> (objects[i])))
 		{
