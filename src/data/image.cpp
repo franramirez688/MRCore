@@ -31,7 +31,7 @@
 #include "image.h"
 #include "system/filesystem.h"
 #include "base/logger.h" 
-#include "config.h"
+
 #include <assert.h>
 #include <cstdio>
 

@@ -30,7 +30,7 @@
  **********************************************************************/
  
 #include "labeledgridmap.h"
-#include "config.h"
+
 #include "data/image.h"
 #include "gl/gltools.h"
 

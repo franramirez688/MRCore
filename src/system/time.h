@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include "../config.h"
+//#include "../config.h"
 
 #ifdef WIN32
 		#define _WINSOCKAPI_ //prevent the inclusion of sockets

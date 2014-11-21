@@ -30,7 +30,7 @@
  **********************************************************************/
  
 #include "path2d.h"
-#include "config.h"
+
 #include "gl/gltools.h"
 
 namespace mr{
